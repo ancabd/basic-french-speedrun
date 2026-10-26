@@ -1,0 +1,14 @@
+{
+  "name": "cartes",
+  "version": "2.0.0",
+  "description": "A self-paced French card battler: a 21-day plan of lessons, daily texts and bosses.",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "test": "node build.js && node tools/test.js",
+    "balance": "node build.js && node tools/balance.js"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

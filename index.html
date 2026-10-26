@@ -1,0 +1,2537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cartes: French card battler</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<style>
+:root{
+  --bg:#E4E9F3;--surface:#F6F8FC;--ink:#151E3F;--muted:#566184;--line:#C3CBDF;
+  --hp:#C2352B;--xp:#D9A514;--good:#2C7A54;--bad:#C2352B;--shadow:#151E3F;
+  --paper:#FBF6E9;--paper-ink:#171F40;
+  --k-v:#C2352B;--k-l:#2A4BA0;--k-g:#D9A514;--k-w:#3A3F6B;--k-s:#2C7A54;--k-r:#1F7F8A;
+  --ui:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fr:"Alegreya",Georgia,"Times New Roman",serif;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10173A;--surface:#1A2452;--ink:#EDF0FA;--muted:#9CA7CC;--line:#313D78;
+  --hp:#F0685C;--xp:#F2C744;--good:#5FC08F;--bad:#F0685C;--shadow:#050818;--paper:#F3EDDC;}}
+:root[data-theme="dark"]{
+  --bg:#10173A;--surface:#1A2452;--ink:#EDF0FA;--muted:#9CA7CC;--line:#313D78;
+  --hp:#F0685C;--xp:#F2C744;--good:#5FC08F;--bad:#F0685C;--shadow:#050818;--paper:#F3EDDC;}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 var(--ui);-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--k-l);outline-offset:2px}
+#app{max-width:520px;margin:0 auto;padding:16px 16px 96px;min-height:100%}
+#app.full{padding-bottom:16px;display:flex;flex-direction:column;height:100%}
+h1{font:800 28px/1.1 var(--ui);margin:0 0 4px;letter-spacing:-.02em}
+h2{font:800 19px/1.2 var(--ui);margin:28px 0 10px;letter-spacing:-.01em}
+p{margin:0 0 10px}
+small,.muted{color:var(--muted);font-size:14px}
+.fr{font-family:var(--fr)}
+
+/* bars */
+.top{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat b{font:800 22px/1 var(--ui)}
+.stat .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.bar{height:12px;border:2px solid var(--ink);border-radius:3px;background:var(--surface);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--xp);transition:width .3s}
+.bar.hp i{background:var(--hp)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 18px;border:2px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--bg);font-weight:600;box-shadow:3px 3px 0 var(--shadow)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.btn.alt{background:var(--surface);color:var(--ink)}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;box-shadow:none;cursor:default}
+.link{background:none;border:0;padding:8px 0;color:var(--muted);text-decoration:underline;min-height:44px}
+.rowbtns{display:flex;gap:10px;flex-wrap:wrap}
+.rowbtns .btn{flex:1}
+
+/* boss panel */
+.bosspanel{display:grid;grid-template-columns:124px 1fr;gap:16px;align-items:center;margin-top:22px;padding:14px;background:var(--surface);border:2px solid var(--ink);border-radius:8px}
+.tarot{background:var(--paper);color:var(--paper-ink);border:2px solid var(--paper-ink);border-radius:8px;box-shadow:4px 4px 0 var(--shadow);padding:6px;display:flex;flex-direction:column;aspect-ratio:5/8;text-align:center}
+.tarot .num{font:700 13px/1 var(--fr)}
+.tarot .glyph{flex:1;display:flex;align-items:center;justify-content:center;margin:5px 0;border:2px solid var(--paper-ink);background:var(--k-l);color:var(--paper);font:italic 500 46px/1 var(--fr);overflow:hidden}
+.tarot .nm{font:700 13px/1.15 var(--fr)}
+.tarot.b6 .glyph{background:var(--paper-ink)}.tarot.b7 .glyph{background:var(--xp);color:var(--paper-ink)}
+.tarot.b1 .glyph{background:var(--k-v)}.tarot.b2 .glyph{background:var(--k-g);color:var(--paper-ink)}.tarot.b3 .glyph{background:var(--k-s)}.tarot.b4 .glyph{background:var(--k-w)}.tarot.b5 .glyph{background:var(--k-r)}
+
+/* plan */
+.strip{margin-top:18px;padding:12px 14px;background:var(--surface);border:2px solid var(--ink);border-radius:8px}
+.strip .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tag.done{background:var(--good);color:var(--bg);border-color:var(--good)}
+.tl{display:flex;gap:4px;margin:14px 0 6px}
+.tl div{border:2px solid var(--ink);border-radius:4px;background:var(--surface);padding:6px 6px 8px;font-size:12px;line-height:1.25;position:relative;overflow:hidden;min-width:0}
+.tl div b{display:block;font-size:13px;overflow-wrap:anywhere}
+.tl div i{position:absolute;left:0;bottom:0;height:5px;background:var(--xp)}
+.tl div.now{box-shadow:3px 3px 0 var(--shadow)}
+.q{display:grid;grid-template-columns:96px 1fr auto;gap:10px;align-items:center;padding:7px 0}
+.q small{font-variant-numeric:tabular-nums}
+.chks{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin:6px 0 12px}
+.chks.one{grid-template-columns:1fr}
+.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:14px;margin:0;padding:6px 0;min-height:36px}
+.chk input{width:20px;height:20px;flex:0 0 auto;margin:0}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:4px;text-align:left;font-weight:600;white-space:nowrap}
+td input.sc{width:72px;padding:8px 6px;font-size:14px;border-width:1.5px}
+.steps{padding-left:20px;margin:6px 0}
+/* lessons + map */
+.deckbar i{background:var(--k-l)}
+.mini{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:18px;padding:12px 14px;background:var(--surface);border:2px solid var(--ink);border-radius:10px;text-align:left}
+.mini .mt b{display:block}.mini .mt small{color:var(--muted)}
+.dots{display:flex;gap:6px;position:relative;flex-wrap:wrap;justify-content:flex-end}
+.dots i{font-style:normal;width:26px;height:26px;border-radius:50%;border:2px solid var(--pc);background:var(--surface);font:700 12px/22px var(--ui);text-align:center}
+.dots i.done{background:var(--pc);color:var(--bg)}.dots i.cur{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--pc)}.dots i.locked{border-color:var(--line);color:var(--muted)}
+.learn{padding:12px 14px;border-left:6px solid var(--pc);background:var(--surface);border-radius:0 8px 8px 0}
+.topics{margin:4px 0 0;padding-left:20px}.topics li{margin:2px 0;font-weight:600}
+.lessons{display:grid;gap:8px}
+.lrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:2px solid var(--ink);border-left-width:10px;border-radius:6px;padding:10px 12px;min-height:60px}
+.lrow .g{flex:1;min-width:0}.lrow b{display:block}.lrow small{color:var(--muted);font-size:13px;line-height:1.3;display:block}
+.lp{font-weight:700;font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}.lp.ok{color:var(--good)}
+.lrow[disabled]{opacity:.5}
+.map{position:relative;margin:14px 0 8px}
+.map svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.map path{fill:none;stroke:var(--line);stroke-width:6;stroke-dasharray:2 12;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.map path.lit{stroke-dasharray:none}
+.pb{position:absolute;left:0;right:0;height:56px;display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--surface);border:2px solid var(--ink);border-radius:10px;z-index:1}
+.pb>i{flex:0 0 14px;height:14px;border-radius:50%;background:var(--pc)}
+.pb b{display:block;font-size:15px}.pb small{color:var(--muted);font-size:13px}
+.pb .g{flex:1;min-width:0}
+.pbs{font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted)}
+.nd{position:absolute;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:3px solid var(--pc);background:var(--surface);color:var(--ink);font:800 20px/1 var(--ui);padding:0;z-index:2;display:flex;align-items:center;justify-content:center}
+.nd.done{background:var(--pc);color:var(--pt)}
+.nd.done i{position:absolute;right:-6px;top:-6px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);font:700 13px/24px var(--ui);font-style:normal}
+.nd.cur{width:74px;height:74px;font-size:26px;border-width:5px;box-shadow:4px 4px 0 var(--shadow)}
+.nd.cur::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:3px solid var(--pc);animation:ring 2.4s ease-out infinite}
+@keyframes ring{0%{transform:scale(.85);opacity:.9}80%,100%{transform:scale(1.15);opacity:0}}
+.nd.locked{border-color:var(--line);color:var(--muted)}
+.nl{position:absolute;transform:translateY(-50%);font-size:14px;line-height:1.25;max-width:240px}
+.nl.l{text-align:right}.nl.r{left:auto}
+.nl b{display:block;font-size:15px}.nl span{display:block}.nl small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.nl.locked{opacity:.6}
+.here{display:inline-block;font-style:normal;font-size:12px;font-weight:700;background:var(--ink);color:var(--bg);border-radius:20px;padding:1px 9px;margin-bottom:3px}
+.scrim{position:fixed;inset:0;background:rgba(21,30,63,.4);z-index:30}
+.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);max-height:78vh;overflow:auto;background:var(--surface);border:2px solid var(--ink);border-bottom:0;border-top:8px solid var(--pc);border-radius:14px 14px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));z-index:31}
+.sh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.sh b{display:block;font-size:22px}.sh small{color:var(--muted)}
+/* tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tiles .tile:last-child:nth-child(odd){grid-column:1/-1;min-height:0}
+.tile{text-align:left;background:var(--surface);border:2px solid var(--ink);border-left-width:10px;border-radius:6px;padding:10px 12px;min-height:104px;display:flex;flex-direction:column;gap:2px}
+.tile b{font-size:17px}
+.tile span{font-size:13px;color:var(--muted);line-height:1.3}
+.tile em{font-style:normal;font-size:13px;font-weight:600;margin-top:auto}
+.tile[disabled]{opacity:.5}
+.e-v{border-left-color:var(--k-v)}.e-l{border-left-color:var(--k-l)}.e-g{border-left-color:var(--k-g)}.e-w{border-left-color:var(--k-w)}.e-s{border-left-color:var(--k-s)}.e-r{border-left-color:var(--k-r)}
+
+/* playing cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
+.card{position:relative;text-align:left;width:100%;min-height:172px;background:var(--paper);color:var(--paper-ink);border:2px solid var(--paper-ink);border-radius:8px;box-shadow:3px 3px 0 var(--shadow);padding:0;display:flex;flex-direction:column;overflow:hidden}
+.card .cn{display:block;padding:8px 8px 8px 36px;font:700 16px/1.1 var(--fr);color:var(--paper);background:var(--k-v);min-height:38px}
+.card .cost{position:absolute;left:5px;top:5px;width:26px;height:26px;border-radius:50%;background:var(--paper);border:2px solid var(--paper-ink);font:800 14px/22px var(--ui);text-align:center}
+.card .cd{padding:8px;font-size:13px;line-height:1.3;flex:1}
+.card .ck{padding:0 8px 7px;font-size:11px;opacity:.7}
+.card.k-l .cn{background:var(--k-l)}.card.k-g .cn{background:var(--k-g);color:var(--paper-ink)}.card.k-w .cn{background:var(--k-w)}.card.k-s .cn{background:var(--k-s)}.card.k-r .cn{background:var(--k-r)}
+.card.r1{outline:2px solid var(--paper-ink);outline-offset:-6px}
+.card.r2{outline:3px double var(--k-g);outline-offset:-7px}
+.card.dim{opacity:.45}
+.card:not(.dim):active{transform:translateY(-4px)}
+
+/* nav */
+#nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:2px solid var(--ink);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;justify-content:center;z-index:5}
+#nav button{flex:1;max-width:130px;background:none;border:0;padding:8px 4px 10px;font-size:13px;font-weight:600;color:var(--muted);min-height:56px}
+#nav button i{display:block;font-style:normal;font-size:18px;line-height:1.2}
+#nav button.on{color:var(--ink)}
+#nav.hide{display:none}
+
+/* forms */
+input[type=text],textarea,select{width:100%;background:var(--surface);border:2px solid var(--ink);border-radius:6px;padding:12px;font-size:17px}
+textarea{min-height:150px;font-size:15px;line-height:1.4}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+pre{background:var(--surface);border:1px dashed var(--line);border-radius:6px;padding:10px;font-size:13px;overflow-x:auto;margin:8px 0}
+details{margin:10px 0}summary{font-weight:600;min-height:44px;display:flex;align-items:center;cursor:pointer}
+.list{border:2px solid var(--ink);border-radius:6px;background:var(--surface)}
+.list>div{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.list>div:first-child{border-top:0}
+.list>div.today{box-shadow:inset 8px 0 0 var(--xp);padding-left:18px}
+.list .g{flex:1;min-width:0}
+.list input[type=checkbox]{width:22px;height:22px}
+.notice{border:2px solid var(--hp);border-radius:6px;padding:12px;margin:16px 0 0;background:var(--surface)}
+.err{color:var(--bad);font-size:14px}
+
+/* session */
+.sbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.x{width:44px;height:44px;border:2px solid var(--ink);border-radius:6px;background:var(--surface);font-size:18px}
+.pips{flex:1;display:flex;gap:5px}
+.pips i{flex:1;height:8px;border:2px solid var(--ink);border-radius:2px;background:var(--surface)}
+.pips i.cur{background:var(--ink)}.pips i.good{background:var(--good)}.pips i.bad{background:var(--bad)}
+.prompt{background:var(--paper);color:var(--paper-ink);border:2px solid var(--paper-ink);border-radius:8px;box-shadow:4px 4px 0 var(--shadow);padding:18px 16px;margin-bottom:16px}
+.prompt .ask{font-size:14px;opacity:.75;margin-bottom:6px}
+.prompt .big{font:700 26px/1.2 var(--ui);overflow-wrap:anywhere}
+.prompt .big.fr.free{font-size:23px}
+.prompt .big.fr{font:700 30px/1.2 var(--fr)}
+.prompt .chip{display:inline-block;margin-top:10px;font-size:12px;border:1px solid var(--paper-ink);border-radius:20px;padding:2px 10px}
+.prompt .btn{background:var(--paper-ink);color:var(--paper);border-color:var(--paper-ink)}
+.acc{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px}
+.acc button{flex:0 0 auto;min-width:40px;height:40px;border:2px solid var(--ink);border-radius:6px;background:var(--surface);font:500 18px var(--fr)}
+.fb{border:2px solid var(--good);border-radius:6px;padding:12px;margin:14px 0;background:var(--surface)}
+.fb.no{border-color:var(--bad)}
+.fb b{display:block;font-size:18px;margin-bottom:4px}
+.fb .a{font:700 20px/1.25 var(--fr)}
+.center{text-align:center}
+.spacer{flex:1}
+
+/* battle */
+.arena{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:start}
+.arena.hit .tarot{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.intent{font-weight:600;border:2px solid var(--ink);border-radius:6px;padding:8px 10px;background:var(--surface);margin:8px 0}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:12px;font-weight:600;border:1.5px solid var(--ink);border-radius:20px;padding:1px 9px;background:var(--surface)}
+.msg{min-height:44px;font-size:14px;color:var(--muted);margin:10px 0}
+.me{border-top:2px solid var(--ink);padding-top:10px}
+.pipsE{font-size:20px;letter-spacing:3px;color:var(--xp)}
+.hand{display:flex;gap:10px;overflow-x:auto;padding:10px 4px 12px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.hand .card{flex:0 0 124px;width:124px}
+.over{background:var(--surface);border:2px solid var(--ink);border-radius:8px;padding:18px;margin-top:14px}
+.quiz{margin-top:4px;padding:14px;border:2px solid var(--ink);border-radius:8px;background:var(--surface)}
+.quiz.def{border-color:var(--hp);box-shadow:inset 0 6px 0 var(--hp)}
+.quiz.atk{box-shadow:inset 0 6px 0 var(--k-l)}
+.qk{font-weight:600;font-size:14px;margin:4px 0 8px}
+.qa{color:var(--muted);font-size:14px;margin:0 0 2px}
+.qb{font:700 22px/1.25 var(--ui);margin:0 0 8px;overflow-wrap:anywhere}.qb.fr{font:700 24px/1.25 var(--fr)}
+.qo{display:grid;gap:8px;margin-top:10px}
+.qo button{text-align:left;min-height:48px;padding:10px 12px;border:2px solid var(--ink);border-radius:6px;background:var(--bg);font-size:16px;line-height:1.3}
+.qo button.fr{font-family:var(--fr);font-size:18px}
+.qo button.right{background:var(--good);border-color:var(--good);color:var(--bg)}
+.qo button.wrong{background:var(--bad);border-color:var(--bad);color:var(--bg)}
+.qo button[disabled]{cursor:default}
+.qr{margin:12px 0 10px}
+/* reading */
+.rtext h1{font:700 30px/1.15 var(--fr);margin:2px 0 12px}
+.rbody{font-size:20px;line-height:1.6;margin:12px 0 18px}
+.rbody p{margin:0 0 14px}
+.gl{display:inline;font:inherit;color:inherit;background:none;border:0;padding:0 1px;border-bottom:2px dotted var(--k-l);border-radius:0;cursor:pointer}
+.gl.on{background:var(--k-l);color:var(--bg);border-bottom-color:var(--k-l);border-radius:3px}
+.glt{display:inline-block;font:400 15px/1.35 var(--ui);background:var(--surface);border:2px solid var(--k-l);border-radius:8px;padding:3px 9px;margin:2px 4px;vertical-align:baseline}
+.glt b{font:700 16px var(--fr);margin-right:4px}.glt .link{min-height:0;padding:0 0 0 6px;font-size:14px}
+.again{margin-top:22px}.again .rbody{font-size:18px}
+.prompt .big.rq{font-size:24px}
+#toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-weight:600;font-size:14px;max-width:90%;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav"></nav>
+<div id="toast" role="status"></div>
+<script>
+"use strict";
+/* ===== 00-util.js ===== */
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const uid6=()=>Math.random().toString(36).slice(2,9);
+const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>fmt(new Date());
+const dayNum=s=>Math.round(Date.parse(s+'T12:00:00Z')/864e5);
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+
+
+/* ===== 10-game-data.js ===== */
+/* ---------- game data ---------- */
+const SK={
+ l:{n:'Listening',d:'Hear French, type the meaning',gives:'Block cards'},
+ g:{n:'Grammar',d:'Translate fresh sentences into French',gives:'Combo cards'},
+ w:{n:'Writing',d:'Type the French for words, dictation, then a free answer',gives:'Attack cards or a cut'},
+ s:{n:'Speaking',d:'Say words aloud, then answer a question',gives:'A weakening card'},
+ r:{n:'Reading',d:'Read a short text, then answer questions',gives:'A support card'}};
+let B=null; // battle
+function hit(v){let d=v+B.p.str;if(B.p.weak)d=Math.floor(d*.75);if(B.boss.vuln)d=Math.floor(d*1.5);d=Math.max(0,Math.round(d*(B.mult??1)));B.dealt=(B.dealt||0)+d;const ab=Math.min(B.boss.blk,d);B.boss.blk-=ab;B.boss.hp=Math.max(0,B.boss.hp-(d-ab));B.fx=true}
+function blk(v){B.p.blk+=v}
+function drawN(n){while(n-->0){if(B.hand.length>=10)return;if(!B.draw.length){if(!B.disc.length)return;B.draw=shuffle(B.disc);B.disc=[]}B.hand.push(B.draw.pop())}}
+const CARDS={
+ frappe:{n:'Frappe',s:'w',r:0,c:1,atk:1,d:'Deal 9 damage.',f:()=>hit(9)},
+ tirade:{n:'Tirade',s:'w',r:1,c:2,atk:1,d:'Deal 20 damage.',f:()=>hit(20)},
+ parade:{n:'Parade',s:'l',r:0,c:1,d:'Gain 7 Block.',f:()=>blk(7)},
+ rempart:{n:'Rempart',s:'l',r:1,c:2,d:'Gain 16 Block.',f:()=>blk(16)},
+ accord:{n:'Accord',s:'g',r:0,c:1,atk:1,d:'Deal 6 damage. Boss gets 2 Vulnerable.',f:()=>{hit(6);B.boss.vuln+=2}},
+ conj:{n:'Conjugaison',s:'g',r:1,c:1,x:1,d:'Gain 3 Strength for this fight. Once per fight.',f:()=>{B.p.str+=3}},
+ bonjour:{n:'Bonjour !',s:'s',r:0,c:1,d:'Boss gets 2 Weak. Gain 4 Block.',f:()=>{B.boss.weak+=2;blk(4)}},
+ cafe:{n:'Café',s:'r',r:0,c:0,x:1,d:'Draw 2 cards. Heal 3 HP. Once per fight.',f:()=>{drawN(2);heal(3)}}
+};
+const OLDCARD={mot:'frappe',syn:'frappe',faux:'frappe',gros:'tirade',dico:'tirade',brouillon:'frappe',rature:'frappe',plume:'frappe',dissert:'tirade',oreille:'parade',sous:'parade',silence:'rempart',echo:'rempart',exception:'accord',regle:'conj',vire:'bonjour',liaison:'bonjour',marque:'cafe',tisane:'cafe',biblio:'cafe'};
+const BOSSES=[
+ {n:'Les Faux Amis',g:'≠',t:'“Actuellement” does not mean what you think it means.',m:[['a',6],[['w',2],['a',3]],['a',4,2],['b',8]]},
+ {n:'Le Subjonctif',g:'que',t:'Il faut que tu perdes.',m:[['s',2],['a',6],['a',7],[['b',6],['a',4]]]},
+ {n:'Madame Exception',g:'!',t:'Every rule you learned has me in it.',m:[['u',2],['a',5,2],['b',10],['a',10]]},
+ {n:'Le H Aspiré',g:'h',t:'No liaison for you.',m:[['b',8],['a',9],['w',2],['a',3,3]]},
+ {n:'La Liaison Dangereuse',g:'z’',t:'Les ennemis arrivent, and you will hear the z.',m:[['a',5],['a',6],[['s',1],['b',5]],['a',7]]},
+ {n:'Quatre-Vingt-Dix-Neuf',g:'99',t:'Four twenties, ten, nine. Count them.',m:[['a',9],['b',9],['a',4,2],['u',1],['a',9]]},
+ {n:'Le Contrôle',g:'A2',hp:1.25,t:'The day 7 checkpoint. Show me what holds you back.',m:[['a',7],['b',8],['a',5,2],['w',1],['a',9]]},
+ {n:'L’Examen B1',g:'B1',hp:1.4,t:'Could you spend a normal day in French? Prove it.',m:[['a',8],[['s',1],['b',6]],['a',5,2],['u',1],['a',10]]}];
+const ROMAN=['I','II','III','IV','V','VI'];
+const bossFor=d=>d===7?6:d>=21?7:(d-1)%6;
+const DEFAULT_LEVELS=[['A2.1',300],['A2.2',350],['A2.3',400],['B1.1',450],['B1.2',500],['B1.3',550],['B2.1',600],['B2.2',700],['B2.3',800]].map(([n,x])=>({n,x}));
+
+
+/* ===== 20-state.js ===== */
+/* ---------- saved data ----------
+   One object, saved in this browser (and, inside claude.ai, to your account).
+   It holds only progress and your own additions; course content comes from the course files.
+     stage        current day of the plan (1–21, 22 once finished)
+     day          { deck: card ids, done: lessons passed per skill on the current day }
+     srs          flashcard history: srs[itemId][skill] = [box, dueDay]
+     off          concepts you switched off: off[conceptId] = true
+     read         reading texts passed: read[textId] = times
+     mine         { items, concepts } you imported yourself
+     plan         checklist ticks and scoreboard
+   Bump SCHEMA and add a step to MIGRATIONS whenever this shape changes. */
+const LS='cartes.v1',SCHEMA=2,TABV=['home','plan','deck','words','setup'];
+let state,view='home',mapSheet=null,mapScroll=false,sess=null,reward=null,srOff=false,importMsg=null,delArm=null,glossSel=null;
+function fresh(){return {v:1,schema:SCHEMA,ts:0,hp:50,xp:0,li:0,levels:DEFAULT_LEVELS.map(l=>({...l})),stage:1,diff:1,wins:0,started:false,
+  day:{deck:[],done:{}},srs:{},off:{},read:{},mine:{items:[],concepts:[]},plan:{done:{},scores:{}}}}
+const maxHp=()=>50+5*state.li;
+function localSave(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+function save(){state.ts=Date.now();localSave();schedulePush()}
+
+/* MIGRATIONS[n] upgrades a save from schema n to n+1. */
+const MIGRATIONS={1:fromSchema1};
+function upgrade(s){let v=s.schema||1;while(v<SCHEMA){s=MIGRATIONS[v](s);v++;s.schema=v}return s}
+/* Schema 1 kept a copy of every word and concept inside the save. Map that history onto course ids. */
+function fromSchema1(s){
+  const n=fresh(),d=s.day||{};
+  ['ts','hp','xp','li','levels','diff','wins','started','lastFree'].forEach(k=>{if(s[k]!=null)n[k]=s[k]});
+  n.stage=s.stage??8;
+  n.plan=s.plan?{done:s.plan.done||{},scores:s.plan.scores||{}}:{done:Object.fromEntries(PRE.map(k=>[k,true])),scores:{3:{l:'A2 3/3',s:'A1+?'},7:{l:'3.75',r:'3.5',s:'3.75',w:'3',f:'2'}}};
+  n.day.deck=(d.deck||[]).map(id=>CARDS[id]?id:(OLDCARD[id]||'frappe'));
+  if(s.stage!=null)['g','l','w','s'].forEach(k=>{if(d.done&&d.done[k])n.day.done[k]=d.done[k]});
+  const better=(a,b)=>!a?b:!b?a:(b[0]>a[0]?b:a);
+  (s.items||[]).forEach(it=>{const c=COURSE.byFr.get(norm(it.fr));let id;
+    if(c)id=c.id;else{id='u:'+it.id;n.mine.items.push({id,fr:it.fr,en:it.en,lv:it.lv||'',list:it.list||'My words',day:0})}
+    Object.keys(it.s||{}).forEach(k=>{const e=(n.srs[id]=n.srs[id]||{});e[k]=better(e[k],it.s[k])})});
+  (s.concepts||[]).forEach(c=>{const cc=COURSE.byName.get(norm(c.name));
+    if(cc){if(c.on===false)n.off[cc.id]=true}
+    else n.mine.concepts.push({id:'uc:'+c.id,name:c.name,day:c.day||0,lv:c.lv||'',list:c.list||'My words',t:c.t||[]})});
+  return n;
+}
+function bindMine(){state.mine.items.forEach(bindItem);state.mine.concepts.forEach(bindConcept)}
+const allItems=()=>COURSE.items.concat(state.mine.items);
+const allConcepts=()=>COURSE.concepts.concat(state.mine.concepts);
+function adopt(s){state=upgrade(s);bindMine()}
+function load(){
+  buildCourse();
+  let raw=null;try{raw=localStorage.getItem(LS)}catch(e){}
+  if(raw){try{const s=JSON.parse(raw);if(s&&s.v===1)adopt(s)}catch(e){
+    console.error('Could not read the saved data',e);try{localStorage.setItem(LS+'.unreadable',raw)}catch(_){}}}
+  if(!state){state=fresh();bindMine()}
+  localSave();
+}
+function heal(n){state.hp=Math.min(maxHp(),state.hp+n)}
+function addXp(n){state.xp+=n;let up=false;while(state.li<state.levels.length-1&&state.xp>=state.levels[state.li].x){state.xp-=state.levels[state.li].x;state.li++;up=true}if(up){state.hp=maxHp();toast('Level up: '+state.levels[state.li].n)}}
+
+/* ---------- cloud sync (per-person, optional; only inside claude.ai) ---------- */
+let cloud=null,base='',pushT=null,pushing=false,syncMsg='Saved on this device.';
+function schedulePush(){if(!cloud)return;clearTimeout(pushT);pushT=setTimeout(push,5000)}
+async function push(){
+  if(!cloud||pushing)return;pushing=true;const ts=state.ts;
+  try{const s=JSON.stringify(state),n=Math.ceil(s.length/80000);
+    for(let i=0;i<n;i++)await cloud.doc(base+'part'+i).set({s:s.slice(i*80000,(i+1)*80000)});
+    await cloud.doc(base+'meta').set({ts,n});syncMsg='Saved to your account, so it follows you across devices.';
+  }catch(e){syncMsg='Could not save to your account just now. Your progress is saved on this device.'}
+  pushing=false;if(state.ts!==ts)schedulePush();
+}
+async function initCloud(){
+  try{
+    if(!window.claude||!claude.use)return;
+    const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+    if(!db||!user)return;const id=await user.id();if(!id)return;
+    base='data/users/'+id+'/';
+    const m=await db.doc(base+'meta').get();cloud=db;
+    if(m.exists){const d=m.data();
+      if(d.ts>(state.ts||0)){let s='';for(let i=0;i<d.n;i++){const p=await db.doc(base+'part'+i).get();if(!p.exists)return;s+=p.data().s}
+        const r=JSON.parse(s);
+        if(r&&r.v===1&&TABV.includes(view)){adopt(r);localSave();if((r.schema||1)<SCHEMA)save();render()}
+      }else if(state.ts>d.ts)schedulePush();
+    }else if(state.ts)schedulePush();
+    syncMsg='Saved to your account, so it follows you across devices.';
+    if(view==='setup')render();
+  }catch(e){}
+}
+let AI=null;
+function initAI(){try{if(window.claude&&claude.use)claude.use('sample').then(s=>{AI=s}).catch(()=>{})}catch(e){}}
+
+/* ===== 21-course-plan.js ===== */
+/* ---------- course: the 21-day plan (phases, notes) ----------
+   Content only. Edit freely: the app reads everything about a day from here and the other course files. */
+const PHASES=[
+ {n:'Foundation',tag:'Survive',from:1,to:3,lv:'~A1 to A1/A2',goal:'Build enough French to construct simple sentences immediately.',
+  q:{l:2,g:2,w:1,s:1},
+  focus:[['Listening','Crack why spoken French sounds so different from the page: pronunciation, sound and spelling, contractions, liaison.'],['Speaking','Start on day 1. Ugly French is allowed.']],
+  grammar:['être','avoir','aller','faire','vouloir','pouvoir','devoir','aimer','present tense','negation','questions','articles','gender','adjective agreement','basic pronouns','passé composé','futur proche'],
+  can:['Introduce myself','Talk about where I’m from','Say what languages I speak','Talk about hobbies and interests','Ask and answer basic questions','Talk about what I’m doing','Talk about what I did','Talk about what I’m going to do','Understand slow, simple French','Survive a basic interaction without switching languages']},
+ {n:'Construction',tag:'Build',from:4,to:7,lv:'~A1 to A2',goal:'Become capable of handling normal everyday situations.',
+  q:{g:2,l:2,s:2,w:2},
+  focus:[['Listening','Move from learner French to learner French plus simple authentic French. French audio, French subtitles, French audio.'],['Speaking','60 to 90 minutes a day. Answer questions you have not prepared for.']],
+  grammar:['passé composé','imparfait','passé composé vs imparfait','object pronouns','y / en','common prepositions','comparisons','quantities','relative clauses','conjunctions','future','conditional','expressing opinions'],
+  can:['Describe people and places','Talk about past experiences','Talk about future plans','Explain preferences','Give simple reasons','Ask for clarification','Tell a basic story','Describe a problem','Make suggestions','Maintain a basic conversation']},
+ {n:'Immersion',tag:'Immerse',from:8,to:14,lv:'~A2 to A2/B1',goal:'Stop primarily studying French. Start living in French.',
+  q:{l:3,r:20,s:2,w:2,g:1},
+  focus:[['Listening','The priority now: 2+ hours a day of serious listening. TV5MONDE, RFI, YouTube, podcasts, interviews, news, documentaries.'],['Reading','Ordinary articles, simple news, transcripts, Wikipedia, graded readers, subtitles. Guess unknown words from context; do not look up everything.'],['Speaking','Train situation to French, not English thought to translation. Build automatic chunks (they are in your Words as “Notes: chunks”).'],['Vocabulary','About 50 to 80 useful items a day, phrases over isolated words. Paste them into Words.']]},
+ {n:'Performance',tag:'Perform',from:15,to:21,lv:'~A2/B1 to B1-ish',goal:'Prove that French works without preparation: can I function when French is coming at me?',
+  q:{s:3,l:2,r:20,w:2,g:1},
+  focus:[['Speaking','Every day: 30 min conversation, 10 min spontaneous monologue, correction and redo. Topics: opinions, travel, relationships, technology, society, education, work, hobbies, culture, hypotheticals, problems and solutions.'],['Listening','Increasingly normal-speed material. Understand the meaning without decoding every word.'],['Reading','Unfamiliar material under time pressure. Main idea? What happened? Why? Consequences? The author’s opinion?'],['Writing','A diagnostic tool: 150 to 250 words a day. Look for recurring errors, not perfect sentences.']]}];
+/* Topics already done before the app existed (pre-ticked on the plan checklists for older saves). */
+const PRE=['0:être','0:avoir','0:aller','0:faire','0:vouloir','0:pouvoir','0:devoir','0:present tense','0:negation','0:questions','0:passé composé','0:futur proche','1:passé composé','1:imparfait'];
+const SCORE_DAYS=[1,3,7,10,14,17,21],SCORE_K=[['l','Listening'],['r','Reading'],['s','Speaking'],['w','Writing'],['f','Fluency']];
+const phaseOf=d=>PHASES.find(p=>d<=p.to)||PHASES[3];
+const DAYNOTE={7:'Checkpoint day: a mini A2-style test. The point is to find what is holding you back.',21:'Final test: a B1 simulation. Could you spend a normal day operating primarily in French?'};
+
+/* ===== 22-course-grammar.js ===== */
+/* ---------- course: grammar concepts ----------
+   Format (same as the Words tab importer): "# day: N" sets the day a concept unlocks, "## Name" starts a concept,
+   each line under it is a sentence pattern "français = english" with matching {a|b} slots. */
+const DAYMAP={'Présent':1,'Présent, négation':1,'Futur proche':2,'Futur proche, négation':2,'Questions avec est-ce que':2,'Passé composé':3,'Passé composé, négation':3,'Imparfait':4};
+function conjugationSrc(){
+  const P=['je','tu','il','nous','vous','ils'],E=['I','you','he','we','you (vous)','they'],BE=['am','are','is','are','are','are'],WAS=['was','were','was','were','were','were'];
+  const AV=['ai','as','a','avons','avez','ont'],ET=['suis','es','est','sommes','êtes','sont'],AL=['vais','vas','va','allons','allez','vont'],AG=['(e)','(e)','','(e)s','(e)(s)','s'];
+  const V=[
+   ['aller','vais vas va allons allez vont','allé',1,['go','goes','went'],['au travail','à Lausanne','au cinéma'],['to work','to Lausanne','to the cinema']],
+   ['apprendre','apprends apprends apprend apprenons apprenez apprennent','appris',0,['learn','learns','learned'],['le français','la leçon','la chanson'],['French','the lesson','the song']],
+   ['avoir','ai as a avons avez ont','eu',0,['have','has','had'],['le temps','la clé','le livre'],['the time','the key','the book']],
+   ['devoir','dois dois doit devons devez doivent','dû',0,['have to','has to','had to'],['travailler','partir','venir'],['work','leave','come']],
+   ['être','suis es est sommes êtes sont','été',0,'be',['à Lausanne','à la maison','en retard'],['in Lausanne','at home','late']],
+   ['faire','fais fais fait faisons faites font','fait',0,['do','does','did'],['le travail','la cuisine','le ménage'],['the work','the cooking','the housework']],
+   ['pouvoir','peux peux peut pouvons pouvez peuvent','pu',0,'can',['venir','travailler','comprendre'],['come','work','understand']],
+   ['venir','viens viens vient venons venez viennent','venu',1,['come','comes','came'],['de Roumanie','à Lausanne','ici'],['from Romania','to Lausanne','here']],
+   ['voir','vois vois voit voyons voyez voient','vu',0,['see','sees','saw'],['le film','la mer','le problème'],['the film','the sea','the problem']],
+   ['vouloir','veux veux veut voulons voulez veulent','voulu',0,['want to','wants to','wanted to'],['apprendre le français','partir','manger'],['learn French','leave','eat']]];
+  const vow=f=>/^[aeiouéèêâîô]/i.test(f),cap=x=>x[0].toUpperCase()+x.slice(1);
+  const subj=(p,f)=>p===0&&vow(f)?"j'"+f:P[p]+' '+f,ne=f=>(vow(f)?"n'":'ne ')+f+' pas';
+  const fr=(v,t,neg,p)=>{const f=v[1].split(' ');
+    if(t===0)return neg?P[p]+' '+ne(f[p]):subj(p,f[p]);
+    if(t===1){const a=(v[3]?ET:AV)[p],pp=v[2]+(v[3]?AG[p]:'');return neg?P[p]+' '+ne(a)+' '+pp:subj(p,a+' '+pp)}
+    return neg?P[p]+' '+ne(AL[p])+' '+v[0]:P[p]+' '+AL[p]+' '+v[0]};
+  const en=(v,t,neg,p)=>{const e=v[4],s=E[p],n=neg?' not':'';
+    if(e==='be')return t===0?`${s} ${BE[p]}${n}`:t===1?`${s} ${WAS[p]}${n}`:`${s} ${BE[p]}${n} going to be`;
+    if(e==='can')return t===0?`${s} ${neg?'cannot':'can'}`:t===1?`${s} ${WAS[p]}${n} able to`:`${s} ${BE[p]}${n} going to be able to`;
+    if(t===0)return neg?`${s} ${p===2?"doesn't":"don't"} ${e[0]}`:`${s} ${p===2?e[1]:e[0]}`;
+    if(t===1)return neg?`${s} didn't ${e[0]}`:`${s} ${e[2]}`;
+    return `${s} ${BE[p]}${n} going to ${e[0]}`};
+  let out='# list: Notes: conjugaison\n';
+  [['Présent',0,0],['Présent, négation',0,1],['Passé composé',1,0],['Passé composé, négation',1,1],['Futur proche',2,0],['Futur proche, négation',2,1]].forEach(([name,t,neg])=>{
+    out+='\n# day: '+DAYMAP[name]+'\n## '+name+'\n';
+    V.forEach(v=>{const r=[0,1,2,3,4,5];out+=`{${r.map(p=>cap(fr(v,t,neg,p))).join('|')}} {${v[5].join('|')}} = {${r.map(p=>cap(en(v,t,neg,p))).join('|')}} {${v[6].join('|')}}\n`});
+  });
+  return out;
+}
+const NOTE_CONCEPTS=`# list: Notes: grammaire
+# day: 4
+## Imparfait
+{Je parlais|Tu parlais|Il parlait|Nous parlions|Vous parliez|Ils parlaient} {français|avec Marie} = {I used to speak|You used to speak|He used to speak|We used to speak|You (vous) used to speak|They used to speak} {French|with Marie}
+{J'étais|Tu étais|Elle était|Nous étions|Vous étiez|Elles étaient} {à Lausanne|en retard|à la maison} = {I was|You were|She was|We were|You (vous) were|They (women) were} {in Lausanne|late|at home}
+
+# day: 2
+## Questions avec est-ce que
+Est-ce que {tu parles|vous parlez|il parle} {français|anglais} ? = {Do you speak|Do you (vous) speak|Does he speak} {French|English}?
+Est-ce que {tu as|vous avez|elle a} {un frère|une sœur|le temps} ? = {Do you have|Do you (vous) have|Does she have} {a brother|a sister|the time}?
+
+`;
+const STARTER_CONCEPTS=`# list: Starter
+# day: 1
+## Présent des verbes en -er
+{Je mange|Tu manges|Nous mangeons} {une pomme|du pain|du fromage} = {I eat|You eat|We eat} {an apple|bread|cheese}
+{Je parle|Elle parle|Ils parlent} français = {I speak|She speaks|They speak} French
+
+# day: 3
+## Passé composé avec avoir
+{J'ai|Tu as|Elle a|Nous avons} {mangé|acheté} {une pomme|du pain} = {I|You|She|We} {ate|bought} {an apple|bread}
+
+# day: 1
+## Négation ne ... pas
+{Je ne mange pas|Il ne mange pas|Nous ne mangeons pas} de {pain|fromage} = {I don't eat|He doesn't eat|We don't eat} {bread|cheese}
+`;
+const GRAMMAR=`# list: Plan: grammaire
+# day: 1
+## Aimer + nom ou infinitif
+{J'aime|Tu aimes|Elle aime|Nous aimons|Vous aimez|Ils aiment} {le cinéma|la musique|voyager|lire} = {I like|You like|She likes|We like|You (vous) like|They like} {cinema|music|travelling|reading}
+{Je n'aime pas|Il n'aime pas|Nous n'aimons pas} {le café|le sport|travailler le soir} = {I don't like|He doesn't like|We don't like} {coffee|sport|working in the evening}
+
+# day: 2
+## Articles: un, une, des, le, la, les
+{J'ai|Tu as|Elle a} {un chat|une voiture|des amis|un frère|une sœur} = {I have|You have|She has} {a cat|a car|friends|a brother|a sister}
+{J'aime|Il aime|Nous aimons} {le chocolat|la plage|les chiens|l'été} = {I like|He likes|We like} {chocolate|the beach|dogs|summer}
+{Je n'ai pas|Elle n'a pas} {de chat|de voiture|d'amis} = {I don't have|She doesn't have} {a cat|a car|any friends}
+
+# day: 3
+## Accord de l'adjectif
+{Il est grand|Elle est grande|Ils sont grands|Elles sont grandes} = {He is tall|She is tall|They (men) are tall|They (women) are tall}
+{Il est content|Elle est contente|Ils sont contents|Elles sont contentes} = {He is happy|She is happy|They (men) are happy|They (women) are happy}
+C'est {un petit chat|une petite maison|un grand jardin|une grande ville|une voiture rouge} = It is {a small cat|a small house|a big garden|a big city|a red car}
+
+# day: 4
+## Passé composé ou imparfait
+{Je regardais un film quand tu as appelé|Il pleuvait quand je suis sorti(e)|Elle dormait quand nous sommes arrivé(e)s|Je lisais quand le téléphone a sonné} = {I was watching a film when you called|It was raining when I went out|She was sleeping when we arrived|I was reading when the phone rang}
+{Avant, je travaillais à Paris|Hier, j'ai travaillé à Paris|Quand j'étais petit(e), j'aimais lire|Ce matin, j'ai lu le journal} = {Before, I used to work in Paris|Yesterday, I worked in Paris|When I was little, I liked reading|This morning, I read the newspaper}
+
+# day: 5
+## Pronoms objets: le, la, les, lui, leur
+{Je le vois|Je la vois|Je les vois|Tu le connais|Elle les aime} = {I see him|I see her|I see them|You know him|She likes them}
+{Je lui parle|Je leur parle|Il me parle|Elle te téléphone|Nous lui écrivons} = {I am speaking to him|I am speaking to them|He is speaking to me|She is calling you|We are writing to her}
+{Je ne le vois pas|Je ne la connais pas|Il ne les aime pas} = {I don't see him|I don't know her|He doesn't like them}
+
+## Y et en
+{J'y vais|Tu y vas|Nous y allons|Elle y habite|J'y pense} = {I am going there|You are going there|We are going there|She lives there|I am thinking about it}
+{J'en veux|J'en ai deux|Il en a beaucoup|Je n'en ai pas|Nous en parlons} = {I want some|I have two of them|He has a lot of them|I don't have any|We are talking about it}
+
+## Prépositions courantes
+{Je vais|Elle va|Nous allons} {à Paris|en France|au Canada|aux États-Unis|chez Marie} = {I am going|She is going|We are going} {to Paris|to France|to Canada|to the United States|to Marie's place}
+Le livre est {sur la table|sous la chaise|dans le sac|devant la porte|derrière la maison|à côté du lit} = The book is {on the table|under the chair|in the bag|in front of the door|behind the house|next to the bed}
+
+# day: 6
+## Comparaisons
+{Paul est plus grand que Marie|Marie est moins grande que Paul|Paul est aussi grand que Luc|Ce film est meilleur que le livre|Il parle mieux que moi} = {Paul is taller than Marie|Marie is less tall than Paul|Paul is as tall as Luc|This film is better than the book|He speaks better than me}
+{Le train est plus rapide que le bus|Le bus est moins cher que le train|C'est la plus belle ville du monde|C'est le meilleur restaurant de la ville} = {The train is faster than the bus|The bus is less expensive than the train|It is the most beautiful city in the world|It is the best restaurant in town}
+
+## Quantités
+{J'ai|Il a|Nous avons} {beaucoup de travail|un peu de temps|trop de travail|assez d'argent|peu d'amis} = {I have|He has|We have} {a lot of work|a little time|too much work|enough money|few friends}
+Je voudrais {un kilo de pommes|une bouteille d'eau|un verre de vin|une tasse de café|un morceau de fromage} = I would like {a kilo of apples|a bottle of water|a glass of wine|a cup of coffee|a piece of cheese}
+
+## Pronoms relatifs: qui, que, où
+{C'est l'homme qui parle français|C'est le film que j'ai vu|C'est la ville où j'habite|C'est le livre que je lis|C'est une amie qui habite à Paris} = {He is the man who speaks French|It is the film that I saw|It is the city where I live|It is the book that I am reading|She is a friend who lives in Paris}
+{J'ai un ami qui travaille ici|Le café que tu bois est froid|Le jour où je suis arrivé(e), il pleuvait} = {I have a friend who works here|The coffee that you are drinking is cold|The day I arrived, it was raining}
+
+## Conjonctions: parce que, mais, donc, quand
+{Je reste à la maison parce que je suis fatigué(e)|Je veux venir, mais je dois travailler|Il pleut, donc je prends le bus|Quand j'ai le temps, je lis|Je mange parce que j'ai faim} = {I am staying home because I am tired|I want to come, but I have to work|It is raining, so I am taking the bus|When I have time, I read|I am eating because I am hungry}
+{Si tu veux, on peut partir|Je ne sais pas si elle vient|Je travaille pendant que tu dors} = {If you want, we can leave|I don't know if she is coming|I work while you sleep}
+
+# day: 7
+## Futur simple
+{Je parlerai|Tu parleras|Il parlera|Nous parlerons|Vous parlerez|Ils parleront} {avec Marie|français|demain} = {I will speak|You will speak|He will speak|We will speak|You (vous) will speak|They will speak} {with Marie|French|tomorrow}
+{Je serai|Tu seras|Elle sera|Nous serons|Vous serez|Ils seront} {à Lausanne|en retard|à la maison} = {I will be|You will be|She will be|We will be|You (vous) will be|They will be} {in Lausanne|late|at home}
+{J'aurai le temps demain|Tu iras à Paris|Il fera beau|Nous pourrons venir|Ils viendront ce soir|Je verrai} = {I will have time tomorrow|You will go to Paris|The weather will be nice|We will be able to come|They will come tonight|I will see}
+
+## Conditionnel
+{Je voudrais|Tu voudrais|Il voudrait|Nous voudrions|Vous voudriez|Ils voudraient} {un café|partir|apprendre le français} = {I would like|You would like|He would like|We would like|You (vous) would like|They would like} {a coffee|to leave|to learn French}
+{Je pourrais venir demain|Tu devrais dormir|On pourrait aller au cinéma|J'aimerais voyager|Ce serait bien|Vous devriez essayer} = {I could come tomorrow|You should sleep|We could go to the cinema (on)|I would love to travel|That would be nice|You (vous) should try}
+
+## Donner son opinion
+{Je pense que|Je crois que|Je trouve que|À mon avis,|J'ai l'impression que} {c'est une bonne idée|c'est trop cher|tu as raison|ce film est intéressant} = {I think that|I believe that|I find that|In my opinion,|I have the impression that} {it is a good idea|it is too expensive|you are right|this film is interesting}
+{Je suis d'accord avec toi|Je ne suis pas d'accord|Ça dépend|Tu as raison|Je ne suis pas sûr(e)} = {I agree with you|I don't agree|It depends|You are right|I am not sure}
+
+# day: 8
+## Venir de et être en train de
+{Je viens|Tu viens|Elle vient|Nous venons|Ils viennent} {de manger|d'arriver|de finir|de partir} = {I have just|You have just|She has just|We have just|They have just} {eaten|arrived|finished|left}
+{Je suis en train de|Il est en train de|Nous sommes en train de} {manger|travailler|lire|regarder un film} = {I am in the middle of|He is in the middle of|We are in the middle of} {eating|working|reading|watching a film}
+
+## Verbes pronominaux
+{Je me lève|Tu te lèves|Il se lève|Nous nous levons|Vous vous levez|Ils se lèvent} {tôt|à sept heures|tard} = {I get up|You get up|He gets up|We get up|You (vous) get up|They get up} {early|at seven o'clock|late}
+{Je me couche tard|Elle s'appelle Marie|Je me souviens de toi|Nous nous reposons|Tu te dépêches|Ils s'amusent} = {I go to bed late|Her name is Marie|I remember you|We are resting|You are hurrying|They are having fun}
+
+# day: 9
+## Verbes pronominaux au passé composé
+{Je me suis levé(e)|Tu t'es levé(e)|Il s'est levé|Elle s'est levée|Nous nous sommes levé(e)s|Ils se sont levés} {tôt|tard|à huit heures} = {I got up|You got up|He got up|She got up|We got up|They got up} {early|late|at eight o'clock}
+{Je me suis couché(e) tard|Elle s'est réveillée à six heures|Nous nous sommes amusé(e)s|Je me suis trompé(e) de train|Il s'est dépêché} = {I went to bed late|She woke up at six o'clock|We had fun|I got on the wrong train|He hurried}
+
+## Négations: jamais, rien, plus, personne
+{Je ne fume jamais|Je ne vois rien|Je ne travaille plus ici|Je ne connais personne|Il ne dit rien|Elle ne vient jamais} = {I never smoke|I don't see anything|I don't work here anymore|I don't know anyone|He says nothing|She never comes}
+{Je n'ai rien mangé|Je n'ai jamais vu ce film|Il n'a vu personne|Personne ne sait|Rien ne marche} = {I didn't eat anything|I have never seen this film|He didn't see anyone|Nobody knows|Nothing works}
+
+# day: 10
+## Impératif
+{Parle plus lentement|Parlez plus lentement|Viens ici|Attendez un moment|Écoute|Regardez} = {Speak more slowly|Speak (vous) more slowly|Come here|Wait (vous) a moment|Listen|Look (vous)}
+{Ne pars pas|N'oublie pas|Allons-y|Dis-moi|Donnez-moi ça|Ne t'inquiète pas} = {Don't leave|Don't forget|Let's go|Tell me|Give (vous) me that|Don't worry}
+
+## Pronoms objets au passé et avec l'infinitif
+{Je l'ai vu|Je l'ai vue|Je les ai vus|Je lui ai parlé|Il m'a dit bonjour} = {I saw him|I saw her|I saw them|I spoke to him|He said hello to me}
+{Je vais le faire|Je veux la voir|Tu peux m'aider|Je dois lui parler|Il va nous appeler} = {I am going to do it|I want to see her|You can help me|I have to speak to her|He is going to call us}
+
+# day: 11
+## Il y a, il faut, depuis, pendant
+{Il y a un problème|Il y a beaucoup de monde|Il n'y a pas de pain|Il faut partir|Il faut travailler|Il ne faut pas oublier} = {There is a problem|There are a lot of people|There is no bread|It is necessary to leave|It is necessary to work|One must not forget}
+{J'habite ici depuis deux ans|J'apprends le français depuis une semaine|J'ai travaillé pendant trois heures|Je suis arrivé(e) il y a deux jours|Il est parti il y a une heure} = {I have lived here for two years|I have been learning French for a week|I worked for three hours|I arrived two days ago|He left an hour ago}
+
+# day: 12
+## Si + présent, futur
+{Si j'ai le temps, je viendrai|S'il pleut, je resterai à la maison|Si tu veux, nous irons au cinéma|Si elle peut, elle viendra|Si vous travaillez, vous réussirez} = {If I have time, I will come|If it rains, I will stay home|If you want, we will go to the cinema|If she can, she will come|If you (vous) work, you will succeed}
+
+# day: 13
+## Plus-que-parfait
+{J'avais déjà mangé|Tu avais déjà fini|Il avait oublié|Nous avions déjà vu ce film|Elle était déjà partie|Ils étaient déjà arrivés} = {I had already eaten|You had already finished|He had forgotten|We had already seen this film|She had already left|They had already arrived}
+{Quand je suis arrivé(e), il était déjà parti|J'ai lu le livre que tu m'avais donné|Elle a dit qu'elle avait compris} = {When I arrived, he had already left|I read the book that you had given me|She said that she had understood}
+
+# day: 14
+## Gérondif et discours indirect
+{J'apprends en écoutant|Il mange en regardant la télé|Elle travaille en chantant|Je me suis blessé(e) en tombant} = {I learn by listening|He eats while watching TV|She works while singing|I hurt myself falling}
+{Il dit qu'il est fatigué|Elle dit qu'elle viendra|Il a dit qu'il était malade|Je sais qu'elle a raison|Il demande si tu viens} = {He says that he is tired|She says that she will come|He said that he was sick|I know that she is right|He asks if you are coming}
+
+# day: 15
+## Subjonctif présent
+{Il faut que je parte|Il faut que tu viennes|Il faut qu'il fasse ses devoirs|Il faut que nous parlions|Il faut que vous soyez à l'heure|Il faut qu'ils aient le temps} = {I have to leave (il faut que)|You have to come (il faut que)|He has to do his homework (il faut que)|We have to talk (il faut que)|You (vous) have to be on time (il faut que)|They have to have time (il faut que)}
+{Je veux que tu viennes|Je voudrais que vous m'aidiez|Je suis content(e) que tu sois là|Bien qu'il soit tard, je travaille|Je ne pense pas que ce soit vrai} = {I want you to come|I would like you (vous) to help me|I am happy that you are here|Although it is late, I am working|I don't think that it is true}
+
+# day: 16
+## Si + imparfait, conditionnel
+{Si j'avais le temps, je voyagerais|Si j'étais riche, j'achèterais une maison|Si tu venais, je serais content(e)|S'il faisait beau, nous irions à la plage|Si je pouvais, je le ferais} = {If I had time, I would travel|If I were rich, I would buy a house|If you came, I would be happy|If the weather were nice, we would go to the beach|If I could, I would do it}
+
+# day: 17
+## Cause et conséquence
+{Je suis en retard à cause du train|J'ai réussi grâce à toi|Comme il pleut, je reste ici|Il est malade, c'est pourquoi il ne vient pas|Puisque tu es là, aide-moi} = {I am late because of the train|I succeeded thanks to you|As it is raining, I am staying here (comme)|He is sick, that is why he is not coming|Since you are here, help me (puisque)}
+
+# day: 18
+## Opposition et concession
+{Il est riche, pourtant il n'est pas heureux|Même si c'est difficile, je continue|J'aime le thé, alors que lui préfère le café|Malgré la pluie, nous sortons|Je viens quand même} = {He is rich, yet he is not happy|Even if it is difficult, I keep going|I like tea, whereas he prefers coffee|Despite the rain, we are going out|I am coming anyway}
+
+# day: 19
+## Pronoms relatifs: dont, ce qui, ce que
+{C'est le film dont je parle|C'est l'ami dont je t'ai parlé|Voilà ce dont j'ai besoin|Je ne sais pas ce que tu veux|Ce qui est important, c'est d'essayer|Dis-moi ce qui se passe} = {It is the film I am talking about|He is the friend I told you about|That is what I need|I don't know what you want|What is important is to try|Tell me what is happening}
+
+# day: 20
+## Conditionnel passé
+{J'aurais dû partir plus tôt|Tu aurais pu me le dire|J'aurais aimé venir|Il aurait fallu réserver|Nous serions venu(e)s|Si j'avais su, je serais resté(e)} = {I should have left earlier|You could have told me|I would have liked to come|It would have been necessary to book|We would have come|If I had known, I would have stayed}
+`;
+
+/* ===== 23-course-numbers.js ===== */
+/* ---------- course: numbers (generated, so every number is spelled correctly) ---------- */
+function frNum(n){
+  const U=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'],T=['','','vingt','trente','quarante','cinquante','soixante'];
+  if(n<17)return U[n];if(n<20)return 'dix-'+U[n-10];
+  if(n<70){const t=T[Math.floor(n/10)],u=n%10;return u===0?t:u===1?t+' et un':t+'-'+U[u]}
+  if(n<80)return n===71?'soixante et onze':'soixante-'+frNum(n-60);
+  if(n<100)return n===80?'quatre-vingts':'quatre-vingt-'+frNum(n-80);
+  if(n<1000){const h=Math.floor(n/100),r=n%100;return (h>1?U[h]+' ':'')+'cent'+(r?' '+frNum(r):h>1?'s':'')}
+  const k=Math.floor(n/1000),r=n%1000;return (k>1?frNum(k)+' ':'')+'mille'+(r?' '+frNum(r):'');
+}
+function enNum(n){
+  const U=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'],T=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  if(n<20)return U[n];if(n<100)return T[Math.floor(n/10)]+(n%10?'-'+U[n%10]:'');
+  if(n<1000)return U[Math.floor(n/100)]+' hundred'+(n%100?' and '+enNum(n%100):'');
+  return enNum(Math.floor(n/1000))+' thousand'+(n%1000?' '+enNum(n%1000):'');
+}
+function numbersBulk(){
+  const sl=(a,f)=>'{'+a.map(f).join('|')+'}',ages=[18,21,25,30,34,42,47,56,61,68,73,80,88,95],prices=[12,15,19,24,39,50,65,70,75,79,84,90,99,120,250],years=[1985,1990,1994,1998,2000,2003,2011];
+  const list=[...Array(21).keys(),21,22,30,31,40,50,60,69,70,71,72,75,77,79,80,81,85,89,90,91,92,95,97,99,100,101,200,250,1000,2000];
+  return `
+# list: Nombres
+# day: 1
+## Les nombres
+J'ai ${sl(ages,frNum)} ans = I am ${sl(ages,String)} years old
+Ça coûte ${sl(prices,frNum)} euros = It costs ${sl(prices,String)} euros
+Il est {une heure|deux heures|trois heures|quatre heures|cinq heures|six heures|sept heures|huit heures|neuf heures|dix heures|onze heures|midi|minuit} = It is {1 o'clock|2 o'clock|3 o'clock|4 o'clock|5 o'clock|6 o'clock|7 o'clock|8 o'clock|9 o'clock|10 o'clock|11 o'clock|noon|midnight}
+Nous sommes le {premier|deux|cinq|quinze|vingt et un|trente} {janvier|mars|mai|juillet|octobre|décembre} = It is the {1st|2nd|5th|15th|21st|30th} of {January|March|May|July|October|December}
+Je suis né(e) en ${sl(years,frNum)} = I was born in ${sl(years,String)}
+
+# day: 1
+${list.map(n=>`${frNum(n)} = ${n} / ${enNum(n)}`).join('\n')}
+un million = one million / a million / 1000000
+premier = first / 1st
+deuxième = second / 2nd
+J'ai trente-deux ans = I am 32 years old / I am thirty-two years old / I am 32
+Ça coûte quinze euros = It costs 15 euros / It costs fifteen euros
+Il est huit heures = It is 8 o'clock / It is eight o'clock / It is 8
+Le train part à dix-sept heures = The train leaves at 5 pm / The train leaves at 17:00 / The train leaves at 5 / The train leaves at 17
+J'habite au numéro quatre-vingt-douze = I live at number 92 / I live at number ninety-two
+Il y a soixante-dix personnes = There are 70 people / There are seventy people
+`;
+}
+
+/* ===== 24-course-vocab.js ===== */
+/* ---------- course: vocabulary lists ----------
+   "# day: N" sets the day words start appearing in lessons; "# list: Name" groups them in the Words tab.
+   One entry per line: "français = english", with " / " between English answers that should all count. */
+const VOCAB=`# list: Starter
+# day: 1
+la pomme = the apple
+le pain = the bread
+le fromage = the cheese
+l'eau = the water
+la maison = the house
+le travail = the work / the job
+la ville = the city / the town
+le voisin = the neighbour / the neighbor
+aujourd'hui = today
+demain = tomorrow
+hier = yesterday
+souvent = often
+toujours = always
+acheter = to buy
+manger = to eat
+parler = to speak / to talk
+comprendre = to understand
+oublier = to forget
+Je voudrais un café = I would like a coffee
+Où est la gare ? = Where is the station? / Where is the train station?
+Il fait beau = The weather is nice / It is nice out
+J'ai faim = I am hungry / I'm hungry
+À tout à l'heure = See you later
+
+
+# day: 2
+# list: Notes: questions
+qui = who
+quoi = what
+quel = which / what
+où = where
+quand = when
+pourquoi = why
+combien = how much / how many
+comment = how
+Qu'est-ce que tu fais ? = What are you doing? / What do you do?
+Est-ce que tu parles français ? = Do you speak French?
+Est-ce que tu as un frère ? = Do you have a brother?
+
+# day: 1
+# list: Notes: time
+maintenant = now
+hier matin = yesterday morning
+ce matin = this morning
+demain matin = tomorrow morning
+hier soir = yesterday evening / last night
+ce soir = this evening / tonight
+demain soir = tomorrow evening / tomorrow night
+la semaine dernière = last week
+cette semaine = this week
+la semaine prochaine = next week
+le mois dernier = last month
+ce mois-ci = this month
+le mois prochain = next month
+l'année dernière = last year
+cette année = this year
+l'année prochaine = next year
+plus tard = later
+
+# day: 3
+# list: Notes: Dr Mrs Vandertramp
+descendre = to go down / to descend
+retourner = to return / to go back
+mourir = to die
+revenir = to come back
+sortir = to go out / to leave
+venir = to come
+aller = to go
+naître = to be born
+devenir = to become
+entrer = to enter / to go in
+rester = to stay / to remain
+tomber = to fall
+rentrer = to go home / to return home / to go back in
+arriver = to arrive
+monter = to go up / to climb
+partir = to leave
+
+# day: 3
+# list: Notes: participes irréguliers
+J'ai eu de la chance = I was lucky / I got lucky
+J'ai été malade = I was sick / I was ill / I have been sick
+J'ai fait une erreur = I made a mistake
+J'ai pris le train = I took the train
+J'ai mis mon manteau = I put on my coat / I put my coat on
+J'ai dit la vérité = I told the truth
+J'ai écrit une lettre = I wrote a letter
+J'ai lu ce livre = I read this book / I have read this book
+J'ai vu ce film = I saw this film / I saw this movie / I have seen this film
+J'ai bu un café = I drank a coffee / I had a coffee
+J'ai dû partir = I had to leave
+J'ai pu venir = I was able to come / I could come
+J'ai voulu essayer = I wanted to try
+J'ai su la réponse = I knew the answer
+Il est venu hier = He came yesterday
+J'ai tenu ma promesse = I kept my promise
+Elle est née en mai = She was born in May
+Il est mort en 1990 = He died in 1990
+J'ai ouvert la porte = I opened the door
+Il m'a offert un cadeau = He gave me a gift / He gave me a present
+J'ai couru ce matin = I ran this morning
+J'ai vécu à Paris = I lived in Paris / I have lived in Paris
+J'ai connu son frère = I knew his brother / I knew her brother / I met his brother
+J'ai appris le français = I learned French / I learnt French
+J'ai compris la question = I understood the question
+J'ai reçu ton message = I received your message / I got your message
+Il est devenu médecin = He became a doctor
+
+# day: 1
+# list: Notes: my sentences
+Je suis de Roumanie = I am from Romania / I come from Romania
+J'habite à Lausanne = I live in Lausanne
+J'aime le cinéma = I like cinema / I like the cinema / I love cinema / I like movies
+J'ai une sœur = I have a sister
+Tu as faim = You are hungry / You're hungry
+Il est fatigué = He is tired / He's tired
+Elle est fatiguée = She is tired / She's tired
+Je vais manger = I am going to eat
+Je vais regarder un film = I am going to watch a film / I am going to watch a movie
+Tu vas travailler = You are going to work / You're going to work
+J'ai travaillé = I worked / I have worked
+Je n'ai pas parlé = I did not speak / I didn't speak / I have not spoken
+Je suis allé(e) au travail = I went to work
+Je veux apprendre le français = I want to learn French
+Je peux travailler = I can work
+Je dois venir = I have to come / I must come
+Je ne comprends pas le français = I don't understand French / I do not understand French
+Je n'ai pas le temps = I don't have time / I do not have time / I don't have the time
+
+# day: 8
+# list: Notes: chunks
+Ça dépend = It depends / That depends
+Je pense que = I think that / I think
+Je suis pas sûr = I'm not sure / I am not sure
+En fait = In fact / Actually
+Je vois ce que tu veux dire = I see what you mean
+À mon avis = In my opinion
+Ça me paraît = It seems to me / That seems to me
+J'ai l'impression que = I have the impression that / I feel like / I get the feeling that
+Je viens de = I have just / I just
+Je suis en train de = I am in the middle of / I am currently
+Je vais prendre le train = I am going to take the train / I will take the train
+`;
+/* Words the learner collected themselves (added on day 8). */
+const MY_WORDS=`
+# day: 8
+# list: Mots du 7 octobre
+cela = that / it
+il n'y a pas si longtemps = not so long ago / not that long ago
+auprès de = next to / beside / close to
+trop = too / too much / too many
+rêveur = dreamy / dreamer / a dreamer
+se moquer de = to make fun of / to mock / to laugh at
+l'accoutrement = the getup / the outfit / the strange outfit
+le singe = the monkey / the ape
+lorsque = when
+loin = far / far away
+les cendres = the ashes
+rien = nothing
+pauvre = poor
+les autres = the others / others
+sans = without
+le pouvoir = the power / power
+détenir = to hold / to possess / to detain
+je détenais = I held / I used to hold / I possessed / I was holding
+l'œuvre = the work / the work of art
+attendre = to wait / to wait for
+le soleil = the sun
+`;
+
+/* ===== 25-import.js ===== */
+/* ---------- bulk import ---------- */
+function parseBulk(text,defLv,defList){
+  const out={items:[],concepts:[],errors:[]};text=(text||'').trim();if(!text)return out;
+  if(text[0]==='['){
+    try{JSON.parse(text).forEach((o,i)=>{
+      if(o&&o.fr&&o.en)out.items.push({fr:String(o.fr),en:String(o.en),lv:o.level||defLv,list:o.list||defList,day:+o.day||0});
+      else if(o&&o.concept)out.concepts.push({name:String(o.concept),lv:o.level||defLv,list:o.list||defList,day:+o.day||0,t:(o.templates||[]).filter(t=>t.fr&&t.en).map(t=>[t.fr,t.en])});
+      else out.errors.push('Entry '+(i+1)+' needs "fr" and "en", or "concept".');
+    })}catch(e){out.errors.push('That JSON could not be read: '+e.message)}
+    return out;
+  }
+  let lv=defLv,list=defList,cur=null,day=0;
+  text.split(/\r?\n/).forEach((raw,i)=>{
+    const line=raw.trim();let m;
+    if(!line){cur=null;return}
+    if(m=line.match(/^##\s*(.+)$/)){cur={name:m[1].trim(),lv,list,day,t:[]};out.concepts.push(cur);return}
+    if(m=line.match(/^#\s*(level|list|day)\s*:\s*(.+)$/i)){const k=m[1].toLowerCase();if(k==='level')lv=m[2].trim();else if(k==='list')list=m[2].trim();else day=parseInt(m[2])||0;cur=null;return}
+    if(line[0]==='#')return;
+    let p=line.indexOf('\t'),w=1;if(p<0){p=line.indexOf(' = ');w=3}if(p<0){p=line.indexOf('=');w=1}
+    const fr=p<0?'':line.slice(0,p).trim(),en=p<0?'':line.slice(p+w).trim();
+    if(!fr||!en){out.errors.push(`Line ${i+1}: expected “français = english”.`);return}
+    if(cur){
+      const a=[...fr.matchAll(/\{([^}]*)\}/g)].map(x=>x[1].split('|').length),b=[...en.matchAll(/\{([^}]*)\}/g)].map(x=>x[1].split('|').length);
+      if(a.length!==b.length||a.some((n,j)=>n!==b[j])){out.errors.push(`Line ${i+1}: the {choices} on both sides need the same number of slots and options.`);return}
+      cur.t.push([fr,en]);
+    }else out.items.push({fr,en,lv,list,day});
+  });
+  return out;
+}
+/* Your own imports go to state.mine. Words already in the course are skipped (their flashcards already exist). */
+function addBulk(r){
+  let ni=0,nc=0,dup=0;const M=state.mine;
+  r.items.forEach(o=>{if(COURSE.byFr.has(norm(o.fr))||M.items.some(i=>norm(i.fr)===norm(o.fr))){dup++;return}
+    M.items.push(bindItem({id:'u:'+slug(o.list||'My words')+':'+slug(o.fr),fr:o.fr,en:o.en,lv:o.lv||'',list:o.list||'My words',day:o.day||0}));ni++});
+  r.concepts.forEach(c=>{if(COURSE.byName.has(norm(c.name))){dup++;return}
+    const ex=M.concepts.find(x=>norm(x.name)===norm(c.name));
+    if(ex){if(c.day)ex.day=c.day;c.t.forEach(t=>{if(!ex.t.some(u=>u[0]===t[0]))ex.t.push(t)})}
+    else{M.concepts.push(bindConcept({id:'uc:'+slug(c.name),name:c.name,lv:c.lv||'',list:c.list||'My words',day:c.day||0,t:c.t}));nc++}});
+  return {ni,nc,dup};
+}
+function expand(fr,en){
+  const re=/\{([^}]*)\}/g,picks=[...fr.matchAll(re)].map(m=>Math.floor(Math.random()*m[1].split('|').length));
+  let i=0;const f=fr.replace(re,(_,g)=>g.split('|')[picks[i++]].trim());i=0;
+  const e=en.replace(re,(_,g)=>{const a=g.split('|');return (a[picks[i++]]??a[0]).trim()});
+  return {fr:f.replace(/\s+/g,' '),en:e.replace(/\s+/g,' ')};
+}
+
+
+/* ===== 26-course-texts.js ===== */
+/* ---------- course: reading texts ----------
+   One text a day for days 1–7, two a day from day 8. Each uses only grammar unlocked by its day.
+   They follow one story: Ana, from Romania, settling into Lausanne with Julien (a colleague),
+   Karim (a friend, a cook) and Madame Rochat (her neighbour).
+
+   Format of each text:
+     @@<day><letter> | Title
+     paragraphs (a blank line between paragraphs)
+     -- gloss       one per line: "form in the text | dictionary form = english / other english"
+                    (when the form in the text is already the dictionary form: "word = english")
+                    These become flashcards from that day on.
+     -- questions   "Question | *right answer | wrong | wrong | wrong" (the * marks the right one)
+     -- write       "French prompt | English prompt" (offered as the Writing free answer)
+*/
+const TEXTS=`
+@@1a | Ana à Lausanne
+Bonjour ! Je suis Ana. J'ai trente-deux ans et je suis de Roumanie. J'habite à Lausanne, dans un petit appartement près du lac.
+
+Je travaille dans un bureau en ville. Le matin, je prends le bus. Je parle roumain, anglais et un peu français. Le français est difficile, mais j'aime la langue.
+
+Le soir, je fais la cuisine et je regarde un film. Je ne regarde pas la télévision. Le week-end, je veux visiter la ville. Je peux aller au lac à pied.
+-- gloss
+le lac = the lake
+près du | près de = near / close to
+le bureau = the office
+le matin = the morning / in the morning
+je prends | prendre = to take
+la langue = the language
+le soir = the evening / in the evening
+difficile = difficult / hard
+à pied = on foot
+-- questions
+How old is Ana? | *32 | 22 | 42 | 23
+How does Ana get to work in the morning? | *By bus | On foot | By train | By car
+What does Ana not watch? | *Television | Films | The lake | The news
+-- write
+Présente-toi comme Ana : ton âge, ta ville, tes langues. | Introduce yourself like Ana: your age, your city, your languages.
+
+@@2a | Le week-end d'Ana
+Ce week-end, Ana va visiter la ville avec Julien. Julien est un collègue. Il est sympa et il parle lentement, alors Ana comprend bien.
+
+Samedi matin, ils vont prendre le métro. Ils vont aller à la cathédrale et au marché. Ana veut acheter des fruits, du pain et un fromage suisse.
+
+« Est-ce que tu aimes le chocolat ? » demande Julien. « Oui, beaucoup ! » répond Ana. « Alors, on va manger une glace au chocolat près du lac. »
+
+Dimanche, Ana ne va pas travailler. Elle va dormir et lire un livre.
+-- gloss
+un collègue | le collègue = the colleague
+sympa = nice / friendly
+lentement = slowly
+le marché = the market
+la cathédrale = the cathedral
+demande | demander = to ask
+répond | répondre = to answer / to reply
+une glace | la glace = the ice cream / ice cream
+dormir = to sleep
+lire = to read
+-- questions
+Who is Julien? | *Ana's colleague | Ana's brother | Ana's neighbour | A waiter
+What does Ana want to buy at the market? | *Fruit, bread and cheese | Chocolate and coffee | A book | Flowers
+What are they going to eat by the lake? | *A chocolate ice cream | A pizza | Bread and cheese | Fruit
+What is Ana going to do on Sunday? | *Sleep and read | Work | Visit the cathedral | Take the metro
+-- write
+Qu'est-ce que tu vas faire ce week-end ? | What are you going to do this weekend?
+
+@@3a | Une journée au bord du lac
+Samedi, Ana et Julien sont allés au marché. Ana a acheté des pommes rouges et un pain délicieux. Julien a pris un café dans une petite boulangerie.
+
+Après, ils sont montés à la cathédrale. La vue est magnifique : le lac est bleu et les montagnes sont grandes et blanches. Ana a pris beaucoup de photos.
+
+L'après-midi, ils sont descendus au bord du lac. Ils ont mangé une glace au chocolat. Le soir, Ana est rentrée à la maison. Elle est fatiguée mais contente. Elle n'a pas regardé de film : elle est allée au lit à neuf heures.
+-- gloss
+au bord du | au bord de = at the edge of / by / on the shore of
+délicieux = delicious
+la boulangerie = the bakery
+la vue = the view
+magnifique = magnificent / wonderful / beautiful
+les montagnes | la montagne = the mountain
+blanches | blanc = white
+l'après-midi = the afternoon / in the afternoon
+contente | content = happy / pleased
+le lit = the bed
+-- questions
+What did Ana buy at the market? | *Red apples and bread | Cheese and wine | Coffee | Chocolate
+Where did Julien have a coffee? | *In a small bakery | At the cathedral | By the lake | At home
+What colour are the mountains? | *White | Blue | Green | Grey
+When did Ana go to bed? | *At nine o'clock | At midnight | At eleven o'clock | At seven o'clock
+-- write
+Qu'est-ce que tu as fait samedi dernier ? Raconte. | What did you do last Saturday? Tell me about it.
+
+@@4a | Quand Ana était petite
+Quand Ana était petite, elle habitait dans un village en Roumanie. Sa famille avait une grande maison avec un jardin. Dans le jardin, sa grand-mère cultivait des tomates et des fleurs.
+
+Chaque été, Ana allait à la rivière avec son frère. Ils nageaient, ils jouaient et ils rentraient tard. Le soir, la grand-mère racontait des histoires.
+
+Un jour, quand Ana avait dix ans, elle est tombée dans la rivière. Son frère a sauté dans l'eau et il a aidé sa sœur. Elle a eu très peur, mais après, elle a ri. Aujourd'hui, elle raconte encore cette histoire à ses amis.
+-- gloss
+le village = the village
+le jardin = the garden
+la grand-mère = the grandmother
+cultivait | cultiver = to grow (plants) / to cultivate
+fleurs | la fleur = the flower
+chaque = each / every
+la rivière = the river
+nageaient | nager = to swim
+racontait | raconter = to tell (a story)
+histoires | l'histoire = the story / history
+a sauté | sauter = to jump
+peur | avoir peur = to be afraid / to be scared
+-- questions
+Où habitait Ana quand elle était petite ? | *Dans un village en Roumanie | À Lausanne | À Genève | Dans une grande ville
+Qu'est-ce que la grand-mère cultivait ? | *Des tomates et des fleurs | Des pommes | Des pommes de terre | Des oranges
+Que faisaient Ana et son frère en été ? | *Ils nageaient et jouaient à la rivière | Ils travaillaient au jardin | Ils allaient à l'école | Ils regardaient la télé
+Qu'est-ce qui est arrivé à Ana quand elle avait dix ans ? | *Elle est tombée dans la rivière | Elle a perdu son chat | Elle est partie à Lausanne | Elle est allée à Paris
+-- write
+Comment était ta vie quand tu étais petit(e) ? | What was your life like when you were little?
+
+@@5a | Au marché avec Madame Rochat
+Madame Rochat est la voisine d'Ana. Elle a soixante-dix-huit ans et elle va au marché chaque mardi. Aujourd'hui, Ana l'accompagne.
+
+Au marché, Madame Rochat connaît tout le monde. Elle parle au fromager et elle lui demande des nouvelles de sa famille. « Vous voulez des abricots ? » demande le vendeur. « Oui, j'en prends un kilo », répond Madame Rochat.
+
+Ana cherche des champignons. Elle en trouve sur une table, à côté des salades. Elle les achète pour faire une soupe.
+
+Après le marché, les deux femmes vont au café en face de la gare. Elles y retournent maintenant chaque semaine. Madame Rochat raconte des histoires de Lausanne, et Ana les écoute avec plaisir.
+-- gloss
+la voisine = the neighbour (woman) / the neighbor / the neighbour
+accompagne | accompagner = to go with / to accompany
+connaît | connaître = to know (a person or a place)
+tout le monde = everybody / everyone
+le fromager = the cheese seller / the cheesemonger
+les nouvelles = the news
+le vendeur = the seller / the stallholder / the salesman
+champignons | le champignon = the mushroom
+en face de = opposite / across from / in front of
+avec plaisir = with pleasure / gladly
+-- questions
+Qui est Madame Rochat ? | *La voisine d'Ana | La mère d'Ana | Une collègue d'Ana | La vendeuse du marché
+Combien d'abricots Madame Rochat prend-elle ? | *Un kilo | Deux kilos | Un seul | Dix
+Pourquoi Ana achète-t-elle des champignons ? | *Pour faire une soupe | Pour Madame Rochat | Pour une pizza | Pour une salade
+Où est le café ? | *En face de la gare | À côté du lac | Derrière la cathédrale | Dans le marché
+-- write
+Tu vas au marché ou au supermarché ? Qu'est-ce que tu y achètes ? | Do you go to the market or the supermarket? What do you buy there?
+
+@@6a | Lausanne ou Genève ?
+Julien est né à Genève, mais il préfère Lausanne. « Lausanne est plus petite que Genève, dit-il, mais elle est plus belle. » Ana pose une question : « Pourquoi ? »
+
+« Parce que c'est une ville où on marche beaucoup, répond Julien. Les rues montent et descendent, donc on voit toujours le lac. À Genève, les rues sont plus plates, mais la ville est plus internationale. »
+
+Ana a un ami, Karim, qui travaille à Genève. Le restaurant où il travaille est le meilleur de la ville, dit-il. Karim gagne plus d'argent que Julien, mais il a moins de temps libre. Il travaille beaucoup et il dort peu.
+
+Quand Ana pense aux deux villes, elle sait une chose : le chocolat que Karim lui offre est aussi bon à Lausanne qu'à Genève !
+-- gloss
+est né | naître = to be born
+préfère | préférer = to prefer
+rues | la rue = the street / the road
+montent | monter = to go up / to climb
+plates | plat = flat
+gagne | gagner = to earn / to win
+l'argent = money / the money
+le temps libre = free time / spare time
+moins de = less / fewer
+peu = little / not much
+offre | offrir = to offer / to give (as a gift)
+-- questions
+Quelle ville Julien préfère-t-il ? | *Lausanne | Genève | Paris | Berne
+Pourquoi est-ce qu'on voit toujours le lac à Lausanne ? | *Parce que les rues montent et descendent | Parce que la ville est plate | Parce que le lac est très grand | Parce qu'on prend le bateau
+Qu'est-ce que Karim a de moins que Julien ? | *Du temps libre | De l'argent | Du travail | Des amis
+Où travaille Karim ? | *Dans un restaurant à Genève | Dans un bureau à Lausanne | Au marché | Dans une banque
+-- write
+Compare ta ville et une autre ville que tu connais. | Compare your city with another city you know.
+
+@@7a | Un mois en Suisse
+Ana écrit un message à son frère, Mihai.
+
+« Salut Mihai ! Mon premier mois à Lausanne est fini. Je pense que mon français est meilleur, mais je ne suis pas sûre. Je comprends Julien et Madame Rochat, mais à la radio, les gens parlent trop vite.
+
+Le mois prochain, je prendrai des cours de français le soir. J'apprendrai aussi à faire du ski : Julien dit que c'est facile, mais je ne le crois pas !
+
+Tu viendras me voir en décembre ? Nous irons à Genève chez Karim et nous mangerons une fondue. À mon avis, tu adoreras la Suisse. Je voudrais aussi te présenter Madame Rochat : elle serait très contente de te rencontrer.
+
+Bises, Ana »
+-- gloss
+écrit | écrire = to write
+fini = finished / over
+sûre | sûr = sure
+trop vite = too fast / too quickly
+cours | le cours = the class / the lesson / the course
+le ski = skiing / ski
+facile = easy
+crois | croire = to believe
+rencontrer = to meet
+bises = love (at the end of a message) / kisses
+-- questions
+À qui Ana écrit-elle ? | *À son frère | À sa mère | À Julien | À Karim
+Qu'est-ce qu'Ana fera le mois prochain ? | *Elle prendra des cours de français | Elle rentrera en Roumanie | Elle changera de travail | Elle ira à Paris
+Pourquoi Ana ne comprend-elle pas bien la radio ? | *Les gens parlent trop vite | La radio est en allemand | Elle n'a pas de radio | Le son est mauvais
+Qu'est-ce qu'ils mangeront chez Karim ? | *Une fondue | Une pizza | Du poisson | Une soupe
+-- write
+Écris un message à un ami : tes projets pour le mois prochain. | Write a message to a friend: your plans for next month.
+
+@@8a | Le matin d'Ana
+Ana se réveille à six heures et demie. Elle ne se lève pas tout de suite : elle reste cinq minutes au lit et elle écoute la radio en français. Ensuite, elle se lève, elle se douche et elle s'habille.
+
+Elle prend son petit-déjeuner : du pain, du beurre et un café. À sept heures et quart, elle se brosse les dents et elle se dépêche, parce que le bus passe à sept heures vingt-cinq.
+
+Ce matin, elle est en retard. Quand elle arrive à l'arrêt, le bus vient de partir ! Elle attend le prochain. Julien lui envoie un message : « Tu es où ? La réunion vient de commencer. » Ana répond : « Je suis en train d'attendre le bus. J'arrive dans dix minutes ! »
+
+Au bureau, tout le monde est en train de travailler. Ana s'assoit, elle se calme et elle commence sa journée.
+-- gloss
+se réveille | se réveiller = to wake up
+tout de suite = right away / immediately / straight away
+se douche | se doucher = to shower / to have a shower
+s'habille | s'habiller = to get dressed
+le petit-déjeuner = breakfast / the breakfast
+le beurre = butter / the butter
+se brosse les dents | se brosser les dents = to brush one's teeth / to brush your teeth
+l'arrêt = the stop / the bus stop
+la réunion = the meeting
+s'assoit | s'asseoir = to sit down
+-- questions
+Que fait Ana juste après son réveil ? | *Elle écoute la radio au lit | Elle se douche | Elle prend un café | Elle part au travail
+Pourquoi Ana se dépêche-t-elle ? | *Le bus passe à sept heures vingt-cinq | Elle a une réunion à sept heures | Julien l'attend devant la maison | Elle doit acheter du pain
+Quand Ana arrive à l'arrêt, que se passe-t-il ? | *Le bus vient de partir | Le bus arrive | Julien l'attend | Il pleut
+Que fait Ana quand Julien lui écrit ? | *Elle est en train d'attendre le bus | Elle est en train de se doucher | Elle est en réunion | Elle dort
+-- write
+Décris ton matin, de ton réveil jusqu'au travail. | Describe your morning, from waking up to getting to work.
+
+@@8b | Le message vocal de Karim
+Ana écoute le message vocal de Karim.
+
+« Salut Ana, c'est Karim ! Je viens de finir mon service au restaurant et je suis en train de rentrer à pied. Il est minuit, mais je ne suis pas fatigué. Tu sais, je me couche toujours très tard.
+
+Je t'appelle parce que je viens d'avoir une idée. Samedi, le restaurant est fermé. Tu veux venir à Genève ? On se promène au bord du lac, et le soir, je cuisine pour toi et pour Julien.
+
+Je me souviens que tu aimes la cuisine libanaise. Ma mère vient d'envoyer sa recette du taboulé, alors je vais faire un taboulé. Tu me réponds demain ? Bonne nuit ! »
+-- gloss
+le message vocal = the voice message / the voicemail
+le service = the shift (in a restaurant) / service
+me couche | se coucher = to go to bed
+une idée | l'idée = the idea
+fermé = closed
+se promène | se promener = to go for a walk / to walk
+cuisine | cuisiner = to cook
+me souviens | se souvenir = to remember
+la recette = the recipe
+-- questions
+Que vient de faire Karim ? | *Il vient de finir son service | Il vient de se lever | Il vient d'arriver à Lausanne | Il vient de manger
+Pourquoi Karim n'est-il pas fatigué ? | *Il se couche toujours très tard | Il a dormi l'après-midi | Il boit beaucoup de café | Il ne travaille pas
+Pourquoi samedi est-il un bon jour ? | *Le restaurant est fermé | Il fait beau | C'est son anniversaire | Julien est libre
+Qu'est-ce que Karim va cuisiner ? | *Un taboulé | Une fondue | Une pizza | Une soupe
+-- write
+Laisse un message vocal à un ami pour l'inviter ce week-end. | Leave a voice message for a friend to invite them this weekend.
+
+@@9a | Une journée à Genève
+Samedi, Ana et Julien se sont levés tôt et ils ont pris le train pour Genève. Karim les attendait à la gare.
+
+Ils se sont promenés au bord du lac et ils ont vu le jet d'eau. Ana n'a jamais vu de jet d'eau aussi grand ! Julien, lui, s'est ennuyé un peu : il connaît Genève par cœur.
+
+Le soir, Karim a cuisiné un taboulé et du poulet. Personne n'a rien dit au début : tout le monde mangeait. Ensuite, ils se sont amusés et ils ont beaucoup ri.
+
+Ana s'est couchée chez Karim, sur le canapé. Elle ne s'est pas réveillée avant dix heures. Le dimanche, elle ne voulait plus partir !
+-- gloss
+tôt = early
+le jet d'eau = the water jet / the fountain
+s'est ennuyé | s'ennuyer = to be bored / to get bored
+par cœur = by heart
+le poulet = chicken / the chicken
+au début = at the beginning / at first
+se sont amusés | s'amuser = to have fun / to enjoy oneself
+ri | rire = to laugh
+le canapé = the sofa / the couch
+-- questions
+Comment Ana et Julien sont-ils allés à Genève ? | *En train | En bus | En voiture | À pied
+Pourquoi Julien s'est-il ennuyé ? | *Il connaît Genève par cœur | Il était fatigué | Il n'aime pas le lac | Il voulait travailler
+Pourquoi personne n'a rien dit au début du repas ? | *Tout le monde mangeait | Ils étaient fâchés | Karim chantait | Ils regardaient un film
+Où Ana a-t-elle dormi ? | *Sur le canapé de Karim | À l'hôtel | Dans le train | Chez Julien
+-- write
+Raconte une journée où tu t'es bien amusé(e). | Tell me about a day when you had a lot of fun.
+
+@@9b | Nouvelle en ville
+Quand Ana est arrivée à Lausanne, elle ne connaissait personne. Le premier soir, elle s'est assise dans son appartement vide et elle s'est sentie très seule. Elle n'avait rien dans le frigo et les magasins étaient déjà fermés.
+
+Les premières semaines, elle ne sortait jamais le soir. Elle ne comprenait rien à la radio et elle n'osait pas parler français au travail.
+
+Aujourd'hui, tout a changé. Elle ne mange plus seule le soir : elle dîne souvent avec Madame Rochat ou avec des collègues. Elle ne se perd plus dans les rues. Et elle ne s'est jamais sentie aussi bien dans une ville étrangère.
+-- gloss
+vide = empty
+s'est sentie | se sentir = to feel
+seule | seul = alone / lonely
+le frigo = the fridge
+les magasins | le magasin = the shop / the store
+osait | oser = to dare
+dîne | dîner = to have dinner / to dine
+se perd | se perdre = to get lost
+étrangère | étranger = foreign
+-- questions
+Comment Ana s'est-elle sentie le premier soir ? | *Très seule | Très contente | Malade | En colère
+Pourquoi Ana ne pouvait-elle pas acheter à manger le premier soir ? | *Les magasins étaient fermés | Elle n'avait pas d'argent | Elle ne parlait pas français | Elle était malade
+Qu'est-ce qu'Ana n'osait pas faire au début ? | *Parler français au travail | Sortir de l'appartement | Prendre le bus | Téléphoner à sa famille
+Qu'est-ce qui a changé ? | *Elle ne mange plus seule le soir | Elle ne travaille plus | Elle n'aime plus Lausanne | Elle ne parle plus français
+-- write
+Comment tu t'es senti(e) la première fois dans une nouvelle ville ? | How did you feel the first time you were in a new city?
+
+@@10a | La recette de Madame Rochat
+Madame Rochat a donné sa recette de fondue à Ana. Elle l'a écrite sur une petite carte :
+
+« Frotte le caquelon avec une gousse d'ail. Verse le vin blanc et chauffe-le doucement. Ajoute le fromage petit à petit et mélange-le toujours dans le même sens. Ne le laisse pas bouillir ! Quand la fondue est prête, mets un peu de poivre et sers-la tout de suite avec du pain coupé en cubes.
+
+Et surtout, ne perds pas ton pain dans le caquelon : la tradition dit que la personne qui le perd doit chanter une chanson ! »
+
+Ana a lu la recette deux fois. Elle va la préparer samedi pour Julien et Karim. Elle veut les impressionner.
+-- gloss
+frotte | frotter = to rub
+le caquelon = the fondue pot
+une gousse d'ail | la gousse d'ail = the garlic clove / a clove of garlic
+verse | verser = to pour
+chauffe | chauffer = to heat / to warm up
+ajoute | ajouter = to add
+petit à petit = little by little / bit by bit
+mélange | mélanger = to mix / to stir
+bouillir = to boil
+le poivre = pepper / the pepper
+impressionner = to impress
+-- questions
+Qu'est-ce qu'on fait en premier ? | *On frotte le caquelon avec de l'ail | On ajoute le fromage | On met du poivre | On coupe le pain
+Que ne doit-on pas faire avec la fondue ? | *La laisser bouillir | La mélanger | Ajouter du vin | La servir avec du pain
+Que doit faire la personne qui perd son pain ? | *Chanter une chanson | Payer le repas | Faire la vaisselle | Boire un verre d'eau
+Pour qui Ana va-t-elle préparer la fondue ? | *Pour Julien et Karim | Pour Madame Rochat | Pour son frère | Pour ses collègues
+-- write
+Explique à un ami comment préparer ton plat préféré. Utilise l'impératif. | Explain to a friend how to make your favourite dish. Use the imperative.
+
+@@10b | Le mot de Julien
+Julien part en vacances une semaine. Il a laissé un mot à Ana au bureau :
+
+« Ana, je pars demain matin. Voici quelques petites choses à faire cette semaine.
+
+Arrose ma plante, s'il te plaît. Ne lui donne pas trop d'eau : une fois tous les trois jours, c'est assez.
+
+Le client de Berne va appeler mardi. Réponds-lui en français, il ne parle pas anglais. Tu peux le faire, j'en suis sûr !
+
+Je n'ai pas envoyé le rapport à la directrice. Envoie-le avant jeudi, s'il te plaît. Si tu as une question, écris-moi. Mais ne m'appelle pas avant dix heures : je vais dormir !
+
+Merci mille fois. Je te rapporterai du chocolat de Bruxelles. Julien »
+-- gloss
+le mot = the note / the word
+arrose | arroser = to water
+la plante = the plant
+une fois = once / one time
+le client = the client / the customer
+le rapport = the report
+la directrice = the director (woman) / the manager / the director
+rapporterai | rapporter = to bring back
+-- questions
+Pourquoi Julien a-t-il laissé un mot ? | *Il part en vacances | Il est malade | Il change de travail | Il est en retard
+Combien de fois Ana doit-elle arroser la plante ? | *Une fois tous les trois jours | Tous les jours | Deux fois par jour | Une fois par semaine
+Pourquoi Ana doit-elle répondre en français au client ? | *Il ne parle pas anglais | Julien le veut | C'est un client français | Ana doit pratiquer
+Qu'est-ce que Julien n'a pas fait ? | *Envoyer le rapport | Arroser la plante | Appeler le client | Acheter son billet
+-- write
+Écris un mot à un collègue avant tes vacances. | Write a note to a colleague before your holiday.
+
+@@11a | Ana cherche un appartement
+Ana habite dans son petit studio depuis un mois et demi. Il est pratique, mais il n'y a pas de balcon et la cuisine est minuscule. Elle cherche un nouvel appartement depuis deux semaines.
+
+À Lausanne, ce n'est pas facile. Il faut envoyer beaucoup de documents : un contrat de travail, des fiches de salaire et une copie du passeport. Il y a aussi beaucoup de monde à chaque visite.
+
+Il y a trois jours, Ana a visité un deux-pièces près de la gare. Il y avait une vue sur le lac et un grand balcon. Elle est restée dans l'appartement pendant vingt minutes et elle a tout regardé.
+
+Le loyer est un peu cher, mais il faut parfois faire des choix. Ce soir, elle va envoyer son dossier. Il faut croiser les doigts !
+-- gloss
+le studio = the studio flat / the studio apartment / the studio
+pratique = practical / convenient
+le balcon = the balcony
+minuscule = tiny
+des fiches de salaire | la fiche de salaire = the payslip / the pay slip
+beaucoup de monde = a lot of people / many people
+un deux-pièces | le deux-pièces = the two-room flat / the one-bedroom apartment
+le loyer = the rent
+le dossier = the application / the file
+croiser les doigts = to cross one's fingers / to keep one's fingers crossed
+-- questions
+Depuis combien de temps Ana cherche-t-elle un appartement ? | *Depuis deux semaines | Depuis un mois et demi | Depuis trois jours | Depuis un an
+Qu'est-ce qui manque dans son studio ? | *Un balcon | Une cuisine | Une salle de bains | Une fenêtre
+Quand Ana a-t-elle visité le deux-pièces ? | *Il y a trois jours | Hier | Il y a deux semaines | Ce matin
+Combien de temps est-elle restée dans l'appartement ? | *Vingt minutes | Deux heures | Cinq minutes | Toute la journée
+-- write
+Décris ton logement. Depuis combien de temps tu y habites ? | Describe your home. How long have you lived there?
+
+@@11b | Six semaines de français
+Ana apprend le français depuis six semaines. Il y a un mois, elle ne comprenait presque rien. Maintenant, elle suit une conversation simple sans problème.
+
+Son professeur dit qu'il faut écouter du français tous les jours. Alors, pendant le trajet en bus, Ana écoute un podcast. Le soir, elle regarde une série avec des sous-titres en français, jamais en anglais.
+
+Il y a encore des difficultés. Les nombres, par exemple : quatre-vingt-dix-sept, c'est long ! Et il faut faire attention aux faux amis. La semaine dernière, Ana a dit à un collègue qu'elle était « excitée » par le projet. Il a ri pendant cinq minutes.
+-- gloss
+presque = almost / nearly
+suit | suivre = to follow
+le professeur = the teacher
+le trajet = the journey / the trip / the commute
+sous-titres | le sous-titre = the subtitle
+difficultés | la difficulté = the difficulty
+faire attention = to pay attention / to be careful
+faux amis | le faux ami = the false friend
+le projet = the project
+-- questions
+Depuis combien de temps Ana apprend-elle le français ? | *Depuis six semaines | Depuis six mois | Depuis un an | Depuis deux semaines
+Quand Ana écoute-t-elle un podcast ? | *Pendant le trajet en bus | Le soir au lit | Pendant le déjeuner | Le week-end
+Quels sous-titres utilise-t-elle ? | *En français | En anglais | En roumain | Aucun
+Pourquoi le collègue a-t-il ri ? | *Ana a utilisé un faux ami | Ana a raconté une blague | Ana s'est trompée de nombre | Ana est tombée
+-- write
+Comment tu apprends le français ? Qu'est-ce qu'il faut faire, à ton avis ? | How do you learn French? What should you do, in your opinion?
+
+@@12a | Les projets du week-end
+Julien est de retour de Bruxelles. Il propose une excursion pour samedi.
+
+« S'il fait beau, nous irons à Montreux en bateau. Nous visiterons le château de Chillon et nous mangerons au bord du lac. S'il pleut, nous resterons à Lausanne et nous irons au musée. »
+
+Ana aime l'idée. « Si nous allons à Montreux, j'apporterai un pique-nique, dit-elle. Et si Karim est libre, il viendra aussi. » Karim répond par message : « Si je finis tôt vendredi, je prendrai le premier train samedi matin. »
+
+Madame Rochat, elle, a un conseil : « Si vous prenez le bateau, mettez un pull. Sur le lac, il fait toujours plus froid qu'en ville ! »
+-- gloss
+de retour = back (returned)
+propose | proposer = to suggest / to propose
+une excursion | l'excursion = the trip / the outing / the excursion
+le bateau = the boat
+le château = the castle
+pleut | pleuvoir = to rain
+le musée = the museum
+apporterai | apporter = to bring
+un pique-nique | le pique-nique = the picnic
+un conseil | le conseil = the advice / the piece of advice
+un pull | le pull = the jumper / the sweater
+-- questions
+Que feront-ils s'il fait beau ? | *Ils iront à Montreux en bateau | Ils resteront à Lausanne | Ils iront au musée | Ils iront à Genève
+Que feront-ils s'il pleut ? | *Ils iront au musée | Ils iront au château | Ils prendront le bateau | Ils feront un pique-nique
+Quand Karim viendra-t-il ? | *S'il finit tôt vendredi | S'il fait beau | Si Ana l'appelle | S'il n'est pas fatigué
+Quel conseil donne Madame Rochat ? | *Mettre un pull | Prendre un parapluie | Partir tôt | Manger avant de partir
+-- write
+Qu'est-ce que tu feras ce week-end s'il fait beau ? Et s'il pleut ? | What will you do this weekend if the weather is nice? And if it rains?
+
+@@12b | L'entretien de Karim
+Karim a un entretien d'embauche lundi. Un grand hôtel de Lausanne cherche un chef. Il est nerveux et il en parle à Ana.
+
+« Si j'obtiens ce poste, je déménagerai à Lausanne. Je serai plus près de vous, et je ne travaillerai plus la nuit. Mais si on me pose des questions difficiles, je ne saurai pas quoi répondre. »
+
+Ana le rassure : « Si tu restes calme, tout se passera bien. Ils goûteront ta cuisine et ils verront que tu es excellent. Si tu veux, nous pouvons préparer l'entretien ensemble ce soir. »
+
+Karim sourit. « D'accord. Et si j'ai le poste, je t'inviterai au restaurant. Pas au mien : dans un vrai restaurant, où quelqu'un d'autre fait la cuisine ! »
+-- gloss
+un entretien d'embauche | l'entretien d'embauche = the job interview
+un chef | le chef = the chef / the head cook
+nerveux = nervous
+obtiens | obtenir = to get / to obtain
+le poste = the job / the position / the post
+déménagerai | déménager = to move (house) / to move
+rassure | rassurer = to reassure
+goûteront | goûter = to taste
+ensemble = together
+sourit | sourire = to smile
+-- questions
+Quel poste Karim veut-il obtenir ? | *Chef dans un grand hôtel | Serveur à Genève | Professeur de cuisine | Directeur d'un restaurant
+Que fera Karim s'il obtient le poste ? | *Il déménagera à Lausanne | Il restera à Genève | Il arrêtera de cuisiner | Il partira au Liban
+De quoi a-t-il peur ? | *Des questions difficiles | De la cuisine | Du directeur | De déménager
+Où Karim invitera-t-il Ana ? | *Dans un restaurant où il ne cuisine pas | Dans son restaurant | Chez lui | Au château de Chillon
+-- write
+Si tu as un entretien demain, comment tu le prépareras ? | If you have an interview tomorrow, how will you prepare for it?
+
+@@13a | Le train manqué
+Samedi matin, Ana a manqué son train. Elle est arrivée à la gare à huit heures deux. Le train pour Montreux était parti à huit heures. Julien l'attendait sur le quai, l'air triste : il avait acheté les billets la veille.
+
+Ana avait mis son réveil à six heures, mais elle avait oublié de l'allumer. Elle s'était réveillée à sept heures et demie et elle avait couru jusqu'à la gare.
+
+Heureusement, Julien avait vérifié les horaires : il y avait un autre train à huit heures trente. Ils ont bu un café au buffet de la gare. Quand Karim est arrivé, ils avaient déjà fini leurs croissants. Il ne savait pas qu'ils avaient raté le premier train, et il a beaucoup ri quand ils lui ont raconté l'histoire.
+-- gloss
+manqué | manquer = to miss (a train, a bus)
+le quai = the platform
+l'air triste = looking sad
+les billets | le billet = the ticket
+la veille = the day before / the night before
+le réveil = the alarm clock / the alarm
+allumer = to switch on / to turn on
+couru | courir = to run
+heureusement = fortunately / luckily
+les horaires | l'horaire = the timetable / the schedule
+raté | rater = to miss (a train) / to fail
+-- questions
+À quelle heure le train pour Montreux était-il parti ? | *À huit heures | À huit heures deux | À huit heures trente | À sept heures et demie
+Pourquoi Ana était-elle en retard ? | *Elle avait oublié d'allumer son réveil | Le bus était en retard | Elle était malade | Elle avait perdu son billet
+Qui avait acheté les billets ? | *Julien | Ana | Karim | Madame Rochat
+Qu'est-ce que Julien avait vérifié ? | *Les horaires des trains | La météo | Le prix des billets | L'adresse du château
+-- write
+Raconte une fois où tu as raté un train, un bus ou un rendez-vous. Qu'est-ce qui s'était passé avant ? | Tell me about a time you missed a train, a bus or an appointment. What had happened before?
+
+@@13b | La fête surprise
+Le dimanche suivant, c'était l'anniversaire de Madame Rochat. Ana et ses amis avaient préparé une fête surprise.
+
+Ana avait fait un gâteau au chocolat la veille. Julien avait acheté des fleurs et Karim avait cuisiné des petits plats libanais. Ils avaient aussi invité Léo, le petit-fils de Madame Rochat, qui était venu de Fribourg.
+
+Quand Madame Rochat est entrée dans l'appartement, tout le monde a crié « Surprise ! ». Elle n'avait rien remarqué. Elle a d'abord eu un peu peur, et puis elle a pleuré de joie.
+
+« Personne n'avait organisé de fête pour moi depuis la mort de mon mari », a-t-elle dit. Ce soir-là, elle a raconté des histoires jusqu'à minuit.
+-- gloss
+la fête = the party
+l'anniversaire = the birthday
+le gâteau = the cake
+des petits plats | le petit plat = the small dish / the dish
+le petit-fils = the grandson
+a crié | crier = to shout
+remarqué | remarquer = to notice
+d'abord = first / at first
+a pleuré | pleurer = to cry
+la joie = joy
+la mort = death / the death
+le mari = the husband
+-- questions
+Qu'est-ce qu'Ana avait préparé ? | *Un gâteau au chocolat | Des fleurs | Des plats libanais | Une fondue
+Qui est Léo ? | *Le petit-fils de Madame Rochat | Le frère d'Ana | Un collègue de Julien | Le mari de Madame Rochat
+Comment Madame Rochat a-t-elle réagi à la fin ? | *Elle a pleuré de joie | Elle est partie | Elle était fâchée | Elle s'est endormie
+Pourquoi cette fête était-elle importante pour elle ? | *Personne n'avait organisé de fête pour elle depuis la mort de son mari | C'était sa première fête | Elle avait cent ans | Elle partait en voyage
+-- write
+Raconte une fête mémorable. Qu'est-ce que les gens avaient préparé ? | Tell me about a memorable party. What had people prepared?
+
+@@14a | Apprendre en écoutant
+Ana a remarqué une chose : elle apprend mieux en écoutant qu'en lisant des listes de vocabulaire. Le matin, elle écoute les informations en prenant son petit-déjeuner. Le soir, elle révise en cuisinant.
+
+Son professeur lui a dit qu'il fallait aussi parler beaucoup. Il lui a expliqué que les erreurs étaient normales et qu'on apprenait en se trompant. Alors Ana parle français partout : en faisant les courses, en prenant le bus, en attendant son café.
+
+Hier, une vendeuse lui a demandé si elle était française. Ana a répondu qu'elle était roumaine et qu'elle apprenait le français depuis deux mois. La vendeuse a dit que son accent était très joli. Ana est rentrée chez elle en souriant.
+-- gloss
+les informations = the news
+révise | réviser = to revise / to review / to study
+fallait | falloir = to be necessary (il fallait = you had to / it was necessary)
+les erreurs | l'erreur = the mistake / the error
+se trompant | se tromper = to make a mistake / to be wrong
+partout = everywhere
+faisant les courses | faire les courses = to do the shopping / to go grocery shopping
+une vendeuse | la vendeuse = the shop assistant / the saleswoman
+l'accent = the accent
+-- questions
+Comment Ana apprend-elle le mieux ? | *En écoutant | En lisant des listes | En écrivant | En regardant des images
+Qu'est-ce que le professeur a expliqué ? | *Que les erreurs étaient normales | Qu'il fallait lire plus | Qu'Ana parlait trop | Que l'accent était important
+Que fait Ana en faisant les courses ? | *Elle parle français | Elle écoute un podcast | Elle révise ses listes | Elle téléphone à son frère
+Qu'est-ce que la vendeuse a dit ? | *Que son accent était très joli | Qu'elle parlait mal | Qu'elle était française | Qu'il fallait parler plus lentement
+-- write
+Rapporte une conversation récente : qui a dit quoi ? Utilise « il a dit que… ». | Report a recent conversation: who said what? Use "il a dit que…".
+
+@@14b | Chez le médecin
+Karim a mal au dos depuis une semaine. Il s'est blessé en portant des caisses au restaurant. Il est allé chez le médecin jeudi.
+
+Le médecin lui a demandé s'il faisait du sport. Karim a répondu qu'il n'avait pas le temps et qu'il travaillait douze heures par jour. Le médecin lui a dit qu'il devait se reposer et qu'il ne fallait pas porter de choses lourdes pendant deux semaines.
+
+Il lui a aussi conseillé de faire des exercices tous les matins et de marcher en allant au travail. En sortant du cabinet, Karim a appelé Ana. Il lui a dit qu'il allait suivre les conseils du médecin, mais qu'il ne savait pas comment cuisiner sans porter de casseroles !
+-- gloss
+mal au dos | avoir mal au dos = to have backache / to have a sore back / to have back pain
+s'est blessé | se blesser = to hurt oneself / to get injured
+portant | porter = to carry / to wear
+des caisses | la caisse = the crate / the box
+le médecin = the doctor
+se reposer = to rest
+lourdes | lourd = heavy
+conseillé | conseiller = to advise
+le cabinet = the doctor's office / the surgery / the practice
+casseroles | la casserole = the saucepan / the pot
+-- questions
+Comment Karim s'est-il blessé ? | *En portant des caisses | En faisant du sport | En tombant dans la rue | En cuisinant
+Qu'est-ce que le médecin lui a demandé ? | *S'il faisait du sport | S'il mangeait bien | S'il dormait bien | S'il fumait
+Pendant combien de temps ne doit-il pas porter de choses lourdes ? | *Deux semaines | Une semaine | Un mois | Douze jours
+Quel est le problème de Karim à la fin ? | *Il ne sait pas cuisiner sans porter de casseroles | Il ne peut pas marcher | Il a perdu son travail | Il n'aime pas le médecin
+-- write
+Raconte une visite chez le médecin : qu'est-ce qu'il t'a dit ? | Describe a visit to the doctor: what did they tell you?
+
+@@15a | La colocation
+Ana a enfin trouvé un appartement, mais il est grand et le loyer est cher. Elle va donc le partager avec une colocataire, Sophie, une étudiante en architecture. C'est sa première colocation. Avant d'emménager, elles ont écrit ensemble quelques règles.
+
+« Il faut que chacune fasse la vaisselle après le repas. Il faut aussi que nous sortions les poubelles à tour de rôle, le lundi et le jeudi. Si une amie vient dormir, il est important qu'on prévienne l'autre. »
+
+Sophie a ajouté : « Je veux que l'appartement soit calme après vingt-deux heures, parce que je me lève tôt pour l'université. » Ana était d'accord, mais elle a demandé que Sophie ne mette pas sa musique trop fort le samedi matin.
+
+Madame Rochat, qui a aidé Ana à déménager, est contente qu'Ana reste dans le quartier. « Bien que tu déménages, tu seras toujours ma voisine préférée », lui a-t-elle dit. Maintenant, il faut qu'Ana achète des meubles. Julien lui a proposé de l'aider samedi, à condition qu'elle prépare une fondue.
+-- gloss
+la colocation = the flatshare / the house share
+partager = to share
+une colocataire | le colocataire = the flatmate / the roommate
+emménager = to move in
+règles | la règle = the rule
+chacune | chacun = each one / everyone
+la vaisselle = the dishes / the washing-up
+les poubelles | la poubelle = the bin / the rubbish bin / the trash can
+à tour de rôle = in turn / taking turns
+prévienne | prévenir = to warn / to let know
+le quartier = the neighbourhood / the neighborhood / the area
+des meubles | le meuble = the piece of furniture / furniture
+à condition qu' | à condition que = on condition that / provided that
+-- questions
+Pourquoi Ana partage-t-elle l'appartement ? | *Le loyer est cher | Elle se sent seule | Sophie est son amie d'enfance | L'appartement est petit
+Que veut Sophie après vingt-deux heures ? | *Que l'appartement soit calme | Qu'Ana fasse la vaisselle | Que les amies partent | Qu'on sorte les poubelles
+Qu'est-ce qu'Ana a demandé à Sophie ? | *De ne pas mettre sa musique trop fort le samedi matin | De faire la cuisine | De payer plus de loyer | De ne pas inviter d'amies
+À quelle condition Julien aidera-t-il Ana ? | *Qu'elle prépare une fondue | Qu'elle paie le camion | Qu'elle l'aide aussi | Qu'il fasse beau
+-- write
+Écris les règles de ta colocation idéale. Utilise « il faut que… ». | Write the rules of your ideal flatshare. Use "il faut que…".
+
+@@15b | Une lettre de la grand-mère
+Ana a reçu une lettre de sa grand-mère, en roumain. Voici la lettre, traduite en français.
+
+« Ma chère Ana, je suis heureuse que tu sois bien installée en Suisse. Ton frère m'a dit que tu parlais déjà français avec tes voisins. Je suis fière de toi.
+
+Mais je veux que tu fasses attention à ta santé. Il faut que tu manges bien et que tu dormes assez. Je ne pense pas que tu prennes le temps de cuisiner tous les soirs ! Et je doute que la cuisine suisse soit aussi bonne que la mienne.
+
+J'aimerais que tu viennes à Noël. Toute la famille sera là. Bien que le voyage soit long, ce serait une grande joie pour moi.
+
+Je t'embrasse fort. Bunica »
+-- gloss
+traduite | traduire = to translate
+chère | cher = dear
+installée | installé = settled (in)
+fière | fier = proud
+la santé = health
+doute | douter = to doubt
+la mienne | le mien = mine
+Noël = Christmas
+le voyage = the journey / the trip
+embrasse | embrasser = to kiss / to hug (je t'embrasse = love, at the end of a letter)
+-- questions
+Pourquoi la grand-mère est-elle fière ? | *Ana parle déjà français avec ses voisins | Ana a trouvé un appartement | Ana cuisine bien | Ana a un nouveau travail
+Que veut la grand-mère pour la santé d'Ana ? | *Qu'elle mange bien et qu'elle dorme assez | Qu'elle fasse du sport | Qu'elle aille chez le médecin | Qu'elle rentre en Roumanie
+De quoi la grand-mère doute-t-elle ? | *Que la cuisine suisse soit aussi bonne que la sienne | Qu'Ana parle français | Qu'Ana vienne à Noël | Que la Suisse soit belle
+Qu'est-ce qu'elle aimerait ? | *Qu'Ana vienne à Noël | Qu'Ana lui écrive en français | Qu'Ana lui envoie du chocolat | Qu'Ana change de travail
+-- write
+Réponds à la lettre de la grand-mère. | Reply to the grandmother's letter.
+
+@@16a | Si on gagnait au loto
+Au bureau, pendant la pause, les collègues jouent à un petit jeu : « Qu'est-ce que tu ferais si tu gagnais au loto ? »
+
+Julien répond le premier : « Si je gagnais un million, j'arrêterais de travailler et je ferais le tour du monde en voilier. » Sa collègue Nadia rit : « Toi ? Tu aurais le mal de mer après deux jours ! » Elle, elle achèterait une maison à la montagne et elle ouvrirait une petite librairie.
+
+Ana réfléchit. Si elle était riche, elle n'arrêterait pas de travailler : elle aime son métier. Mais elle achèterait un appartement à Bucarest pour ses parents, et elle paierait les études de son frère. Avec le reste, elle inviterait tous ses amis de Lausanne en Roumanie, pour leur montrer le village de son enfance.
+
+« Et si tu ne gagnais rien ? » demande Julien. Ana sourit : « Alors je continuerais exactement comme maintenant. Ce n'est pas si mal. »
+-- gloss
+la pause = the break
+le jeu = the game
+le loto = the lottery
+le tour du monde = the round-the-world trip / the trip around the world
+le voilier = the sailing boat / the sailboat
+le mal de mer = seasickness
+librairie | la librairie = the bookshop / the bookstore
+réfléchit | réfléchir = to think / to reflect
+le métier = the job / the profession / the trade
+les études = studies / education
+le reste = the rest
+l'enfance = childhood
+-- questions
+Que ferait Julien s'il gagnait un million ? | *Le tour du monde en voilier | Il achèterait une maison à la montagne | Il ouvrirait une librairie | Rien de spécial
+Pourquoi Nadia rit-elle ? | *Julien aurait le mal de mer | Julien n'aime pas voyager | Julien a déjà gagné | Julien ne sait pas nager
+Pourquoi Ana n'arrêterait-elle pas de travailler ? | *Elle aime son métier | Elle aurait besoin d'argent | Elle s'ennuierait | Ses parents ne voudraient pas
+Que ferait Ana pour son frère ? | *Elle paierait ses études | Elle lui achèterait une voiture | Elle l'inviterait en Suisse | Elle lui trouverait un travail
+-- write
+Qu'est-ce que tu ferais si tu gagnais au loto ? | What would you do if you won the lottery?
+
+@@16b | Si j'habitais à Paris
+Sophie, la colocataire d'Ana, rêve de Paris. Un soir, elle explique pourquoi.
+
+« Si j'habitais à Paris, j'irais au musée tous les dimanches. Je me promènerais le long de la Seine et je travaillerais dans un grand bureau d'architectes. »
+
+Ana n'est pas convaincue. « Si tu habitais à Paris, tu paierais un loyer énorme pour une chambre minuscule. Tu prendrais le métro aux heures de pointe et tu n'aurais pas de lac pour te baigner en été. »
+
+Sophie réfléchit un moment. « C'est vrai. Si j'avais le choix, je garderais peut-être Lausanne pour vivre et Paris pour les week-ends. » Ana rit : « Voilà une solution parfaite. Et si tu partais un jour, je viendrais te voir très souvent ! »
+-- gloss
+rêve | rêver = to dream
+le long de = along
+convaincue | convaincu = convinced
+énorme = enormous / huge
+heures de pointe | l'heure de pointe = rush hour
+te baigner | se baigner = to swim / to bathe / to go swimming
+le choix = the choice
+garderais | garder = to keep
+parfaite | parfait = perfect
+-- questions
+Que ferait Sophie tous les dimanches à Paris ? | *Elle irait au musée | Elle se baignerait | Elle travaillerait | Elle prendrait le métro
+Selon Ana, quel serait un problème à Paris ? | *Un loyer énorme pour une petite chambre | Le mauvais temps | La langue | Le manque de musées
+Qu'est-ce qui manquerait à Paris, selon Ana ? | *Un lac pour se baigner | Des restaurants | Des bureaux d'architectes | Des parcs
+Quelle solution Sophie trouve-t-elle ? | *Vivre à Lausanne et aller à Paris le week-end | Déménager à Paris | Ne jamais aller à Paris | Habiter à Genève
+-- write
+Si tu pouvais habiter dans n'importe quelle ville, laquelle choisirais-tu et pourquoi ? | If you could live in any city, which would you choose and why?
+
+@@17a | La grève des transports
+Lundi matin, Lausanne s'est réveillée sans bus ni métro. À cause d'une grève des transports publics, des milliers de personnes ont dû trouver une autre solution pour aller au travail.
+
+Comme il faisait beau, beaucoup de gens ont pris le vélo. Les rues étaient donc pleines de cyclistes, et certains automobilistes étaient en colère. Les chauffeurs demandent une augmentation de salaire, c'est pourquoi ils ont arrêté le travail pendant vingt-quatre heures.
+
+Ana, elle, est allée au bureau à pied. Elle a mis quarante minutes, mais grâce à la grève, elle a découvert un nouveau chemin à travers un parc. Puisque tout le monde arrivait en retard, la réunion de neuf heures a commencé à dix heures.
+
+Le soir, la radio a annoncé que la grève était finie. Les chauffeurs ont obtenu une partie de l'augmentation. Ana a décidé de continuer à marcher le matin, au moins quand il fait beau.
+-- gloss
+la grève = the strike
+les transports publics = public transport / public transportation
+des milliers | le millier = thousands / about a thousand
+le vélo = the bike / the bicycle
+pleines | plein = full
+cyclistes | le cycliste = the cyclist
+automobilistes | l'automobiliste = the driver / the motorist
+en colère = angry
+les chauffeurs | le chauffeur = the driver
+une augmentation de salaire | l'augmentation de salaire = the pay rise / the raise
+le chemin = the path / the way
+à travers = through / across
+a annoncé | annoncer = to announce
+-- questions
+Pourquoi n'y avait-il pas de bus lundi ? | *À cause d'une grève | À cause de la neige | À cause d'un accident | À cause d'une fête
+Pourquoi les chauffeurs ont-ils arrêté le travail ? | *Ils demandent une augmentation de salaire | Ils sont malades | Ils veulent plus de vacances | Les bus sont trop vieux
+Qu'est-ce qu'Ana a découvert grâce à la grève ? | *Un nouveau chemin à travers un parc | Un nouveau café | Un vélo | Une nouvelle collègue
+Pourquoi la réunion a-t-elle commencé à dix heures ? | *Tout le monde arrivait en retard | Le directeur était malade | La salle était fermée | Il n'y avait pas d'électricité
+-- write
+Raconte un problème de transport que tu as eu. Quelles en ont été les causes et les conséquences ? | Describe a transport problem you had. What were its causes and consequences?
+
+@@17b | Le nouveau poste de Karim
+Grâce à son talent et à beaucoup de préparation, Karim a obtenu le poste de chef au grand hôtel de Lausanne. Il a donc déménagé le mois dernier.
+
+Comme le restaurant de l'hôtel est réputé, il travaille encore beaucoup, mais ses horaires sont plus réguliers. Il commence à neuf heures et il finit à dix-neuf heures, c'est pourquoi il peut enfin voir ses amis le soir.
+
+Son ancien patron, à Genève, était furieux à cause de son départ. Puisque Karim était son meilleur cuisinier, il lui a proposé un meilleur salaire pour le garder. Mais Karim voulait changer de vie, et il a refusé.
+
+Le premier mois n'a pas été facile. À cause du stress, il dormait mal, et il a fait quelques erreurs. Mais grâce au soutien de ses amis, il a vite trouvé sa place. La semaine prochaine, le directeur de l'hôtel va même ajouter un de ses plats libanais au menu.
+-- gloss
+le talent = the talent
+réputé = renowned / famous / well known
+réguliers | régulier = regular
+enfin = finally / at last
+patron | le patron = the boss
+furieux = furious
+le départ = the departure / leaving
+le cuisinier = the cook
+a refusé | refuser = to refuse / to turn down
+le stress = stress
+le soutien = the support
+la place = the place
+-- questions
+Pourquoi Karim a-t-il obtenu le poste ? | *Grâce à son talent et à sa préparation | Grâce à son ancien patron | Parce qu'il connaissait le directeur | Parce qu'il parlait anglais
+Pourquoi peut-il voir ses amis le soir maintenant ? | *Il finit à dix-neuf heures | Il ne travaille plus | Il habite avec Ana | Il travaille seulement le matin
+Pourquoi son ancien patron était-il furieux ? | *Karim était son meilleur cuisinier et il partait | Karim avait fait des erreurs | Karim demandait plus d'argent | Karim avait fermé le restaurant
+Qu'est-ce qui va se passer la semaine prochaine ? | *Un plat libanais de Karim sera au menu | Karim va retourner à Genève | Karim va ouvrir un restaurant | Karim va prendre des vacances
+-- write
+Parle d'un changement important dans ta vie. Pourquoi l'as-tu fait, et quelles en ont été les conséquences ? | Talk about an important change in your life. Why did you make it, and what were the consequences?
+
+@@18a | Ville ou campagne ?
+Pendant un dîner chez Ana, une discussion commence : vaut-il mieux vivre en ville ou à la campagne ?
+
+Léo, le petit-fils de Madame Rochat, habite dans un village près de Fribourg. Pour lui, la campagne est plus agréable, même si on doit prendre la voiture pour tout. « Chez nous, l'air est pur et il n'y a pas de bruit, alors qu'en ville on entend des voitures toute la nuit. »
+
+Sophie n'est pas d'accord. Elle aime la campagne, pourtant elle ne pourrait pas y vivre. « Malgré le calme, je m'ennuierais. En ville, il y a des concerts, des cinémas, des musées et des cafés ouverts tard. »
+
+Ana pense à son enfance au village. Elle était heureuse là-bas, bien qu'il n'y ait pas grand-chose à faire. Aujourd'hui, elle préfère la ville, mais elle a quand même besoin de nature. « Lausanne, c'est le bon compromis, dit-elle. C'est une ville, et pourtant on voit les montagnes depuis la fenêtre. »
+-- gloss
+vaut-il mieux | il vaut mieux = it is better / it is best
+la campagne = the countryside / the country
+agréable = pleasant / nice
+pur = pure / clean
+le bruit = noise / the noise
+ouverts | ouvert = open
+là-bas = there / over there
+grand-chose = much (pas grand-chose = not much)
+besoin | avoir besoin de = to need
+le compromis = the compromise
+la fenêtre = the window
+-- questions
+Où habite Léo ? | *Dans un village près de Fribourg | À Lausanne | À Genève | À Paris
+Quel inconvénient de la campagne Léo accepte-t-il ? | *On doit prendre la voiture pour tout | Il y a trop de bruit | Il fait froid | Il n'y a pas d'école
+Pourquoi Sophie ne pourrait-elle pas vivre à la campagne ? | *Elle s'ennuierait | Elle n'aime pas la nature | Elle n'a pas de voiture | C'est trop cher
+Pourquoi Lausanne est-elle un bon compromis pour Ana ? | *C'est une ville, et on voit quand même les montagnes | Il n'y a pas de bruit | C'est près de la Roumanie | Il y a peu de voitures
+-- write
+Tu préfères la ville ou la campagne ? Donne des arguments pour et contre. | Do you prefer the city or the countryside? Give arguments for and against.
+
+@@18b | Le marathon de Julien
+Julien s'est inscrit au marathon de Lausanne, alors qu'il n'avait jamais couru plus de dix kilomètres. Tout le monde lui a dit que c'était une mauvaise idée. Il s'est entraîné quand même, trois fois par semaine, malgré la pluie et le froid.
+
+Le jour de la course, il faisait très chaud. Même s'il avait bien préparé la course, Julien a eu des difficultés après trente kilomètres. Ses jambes lui faisaient mal, pourtant il n'a pas abandonné.
+
+Ana, Sophie et Karim l'attendaient près de l'arrivée avec une pancarte : « Allez Julien ! » Il est arrivé après quatre heures et quarante minutes. Ce n'était pas un temps extraordinaire, mais pour lui, c'était une victoire.
+
+Le lendemain, il ne pouvait presque plus marcher. Malgré tout, il a déjà annoncé qu'il participerait au marathon de Genève l'année prochaine.
+-- gloss
+s'est inscrit | s'inscrire = to sign up / to register / to enrol
+s'est entraîné | s'entraîner = to train / to practise / to practice
+la pluie = the rain / rain
+la course = the race / the run
+jambes | la jambe = the leg
+abandonné | abandonner = to give up / to drop out
+l'arrivée = the finish line / the finish / the arrival
+une pancarte | la pancarte = the sign / the placard
+une victoire | la victoire = the victory / the win
+le lendemain = the next day / the day after
+malgré tout = despite everything / all the same / even so
+-- questions
+Pourquoi le marathon était-il une mauvaise idée selon les autres ? | *Julien n'avait jamais couru plus de dix kilomètres | Julien était malade | Il faisait trop froid | Julien n'avait pas de chaussures
+Quand Julien a-t-il eu des difficultés ? | *Après trente kilomètres | Au départ | Après cinq kilomètres | Juste avant l'arrivée
+Qu'est-ce que ses amis avaient préparé ? | *Une pancarte | Un gâteau | Une fondue | Des fleurs
+Qu'a-t-il annoncé malgré tout ? | *Qu'il participerait au marathon de Genève | Qu'il arrêterait le sport | Qu'il ferait du vélo | Qu'il irait chez le médecin
+-- write
+Raconte un défi que tu as relevé malgré les difficultés. | Tell me about a challenge you took on despite the difficulties.
+
+@@19a | Le livre dont tout le monde parle
+Ce mois-ci, Ana lit un roman dont tout le monde parle à Lausanne. C'est l'histoire d'une femme qui quitte son pays pour recommencer sa vie dans une ville étrangère. Ce qui plaît à Ana, c'est que l'héroïne lui ressemble beaucoup.
+
+Ce que l'auteur décrit très bien, ce sont les petites choses dont on a peur quand on arrive quelque part : téléphoner à une administration, comprendre une blague, se faire des amis. Ana a souri plusieurs fois en lisant, parce qu'elle a vécu exactement ce que le livre raconte.
+
+Ce qui est moins réussi, à son avis, c'est la fin. Elle est trop rapide et un peu triste. Ana ne sait pas encore ce qu'elle va lire ensuite. Madame Rochat lui a parlé d'un écrivain suisse dont elle aime tous les livres. Ana va peut-être l'essayer.
+-- gloss
+le roman = the novel
+quitte | quitter = to leave
+recommencer = to start again / to begin again
+plaît | plaire = to please (ça me plaît = I like it)
+l'héroïne = the heroine
+ressemble | ressembler à = to look like / to resemble / to be like
+l'auteur = the author
+décrit | décrire = to describe
+quelque part = somewhere
+une blague | la blague = the joke
+réussi = successful / well done / good
+un écrivain | l'écrivain = the writer
+-- questions
+De quoi parle le roman ? | *D'une femme qui recommence sa vie dans une ville étrangère | D'une famille suisse | D'un voyage autour du monde | D'un chef cuisinier
+Qu'est-ce qui plaît à Ana ? | *L'héroïne lui ressemble | La fin est heureuse | Le livre est court | L'histoire se passe en Roumanie
+Qu'est-ce qui est moins réussi selon Ana ? | *La fin | Le début | Les personnages | Le titre
+De qui Madame Rochat a-t-elle parlé ? | *D'un écrivain suisse | D'une actrice | De son mari | D'un professeur
+-- write
+Parle d'un livre ou d'un film qui t'a plu. Dis ce qui était réussi et ce qui ne l'était pas. | Talk about a book or film you liked. Say what worked and what didn't.
+
+@@19b | Un ami dont je suis fière
+Pour un concours d'écriture de son cours de français, Ana a écrit un texte sur Karim.
+
+« Karim est un ami dont je suis très fière. Ce que j'admire chez lui, c'est son courage. Il a quitté le Liban à vingt ans, sans parler un mot de français. Ce qui l'a aidé, dit-il, c'est la cuisine : dans une cuisine, on se comprend sans beaucoup parler.
+
+Il a commencé comme plongeur dans un restaurant de Genève. Aujourd'hui, il est chef dans un grand hôtel. Le plat dont il est le plus fier, c'est le taboulé de sa mère, qu'il sert maintenant à des clients du monde entier.
+
+Ce que les gens ne savent pas, c'est qu'il est aussi très drôle et très généreux. Quand je suis arrivée en Suisse, il m'a aidée à trouver tout ce dont j'avais besoin. Ce qui compte pour lui, ce n'est pas l'argent, ce sont les gens. »
+-- gloss
+un concours | le concours = the competition / the contest
+l'écriture = writing
+admire | admirer = to admire
+le courage = courage
+plongeur | le plongeur = the dishwasher (person) / the kitchen porter
+le monde entier = the whole world
+drôle = funny
+généreux = generous
+compte | compter = to count / to matter
+-- questions
+Pourquoi Ana est-elle fière de Karim ? | *Pour son courage | Pour son argent | Parce qu'il est célèbre | Parce qu'il parle cinq langues
+Qu'est-ce qui a aidé Karim au début ? | *La cuisine | Ses amis suisses | Un cours de français | Son patron
+Quel était son premier travail ? | *Plongeur dans un restaurant | Chef dans un hôtel | Serveur dans un café | Professeur de cuisine
+Qu'est-ce qui compte pour Karim ? | *Les gens | L'argent | Le succès | Les voyages
+-- write
+Écris le portrait d'une personne dont tu es fier ou fière. | Write a portrait of a person you are proud of.
+
+@@20a | Les regrets de Julien
+Julien a eu une mauvaise semaine. Mardi, il a envoyé un e-mail important au mauvais client. Il aurait dû vérifier l'adresse avant de cliquer. Jeudi, il a oublié l'anniversaire de sa sœur. Il aurait pu mettre une alarme dans son téléphone, mais il n'y a pas pensé.
+
+Vendredi soir, il raconte tout à Ana. « Si j'avais dormi plus, j'aurais fait moins d'erreurs. J'aurais dû prendre des vacances après le marathon. »
+
+Ana l'écoute, puis elle lui dit : « Tu aurais pu faire pire, tu sais. L'année dernière, j'ai envoyé un message d'amour à mon directeur au lieu de mon copain. Si j'avais su, j'aurais changé de pays plus tôt ! »
+
+Julien éclate de rire. Il se sent déjà mieux. Il aurait aimé que sa semaine soit différente, mais finalement, il a une bonne histoire à raconter.
+-- gloss
+vérifier = to check / to verify
+cliquer = to click
+une alarme | l'alarme = the alarm
+pire = worse
+un message d'amour | le message d'amour = the love message / the love letter
+au lieu de = instead of
+le copain = the boyfriend / the friend / the mate
+éclate de rire | éclater de rire = to burst out laughing
+finalement = in the end / finally
+-- questions
+Qu'est-ce que Julien aurait dû faire mardi ? | *Vérifier l'adresse de l'e-mail | Appeler sa sœur | Dormir plus | Prendre des vacances
+Qu'a-t-il oublié jeudi ? | *L'anniversaire de sa sœur | Une réunion | Son téléphone | Le marathon
+Qu'est-ce qu'Ana a fait l'année dernière ? | *Elle a envoyé un message d'amour à son directeur | Elle a raté un avion | Elle a perdu son travail | Elle a oublié l'anniversaire de son frère
+Comment se sent Julien à la fin ? | *Mieux | Plus triste | Furieux | Fatigué
+-- write
+Raconte une chose que tu aurais faite différemment. | Tell me about something you would have done differently.
+
+@@20b | Le voyage raté
+Pour le long week-end, Ana et Sophie avaient prévu un voyage à Turin. Rien ne s'est passé comme prévu.
+
+D'abord, leur train a été supprimé à cause de travaux. Elles auraient dû vérifier les informations la veille, mais elles ne l'ont pas fait. Elles ont pris un bus, qui a mis six heures au lieu de trois. Ensuite, l'hôtel qu'elles avaient réservé n'avait plus leur réservation. Elles auraient pu chercher un autre hôtel tout de suite, mais elles ont passé une heure à discuter avec le réceptionniste.
+
+Finalement, elles ont dormi dans une petite chambre sans fenêtre. « Si on était restées à Lausanne, on aurait passé un week-end tranquille », a dit Sophie. Ana n'était pas d'accord : sans ces problèmes, elles n'auraient jamais découvert la petite pizzeria en face de l'hôtel, où elles ont mangé la meilleure pizza de leur vie.
+-- gloss
+prévu | prévoir = to plan / to foresee
+supprimé | supprimer = to cancel / to delete
+travaux | les travaux = the works / the roadworks / the engineering works
+réservé | réserver = to book / to reserve
+la réservation = the booking / the reservation
+discuter = to talk / to discuss / to argue
+le réceptionniste = the receptionist
+tranquille = quiet / peaceful / calm
+la chambre = the room / the bedroom
+-- questions
+Où Ana et Sophie voulaient-elles aller ? | *À Turin | À Paris | À Genève | À Milan
+Pourquoi leur train a-t-il été supprimé ? | *À cause de travaux | À cause d'une grève | À cause de la neige | À cause d'un accident
+Qu'est-ce qu'elles auraient pu faire à l'hôtel ? | *Chercher un autre hôtel tout de suite | Dormir dans le bus | Rentrer à Lausanne | Appeler la police
+Pourquoi Ana n'est-elle pas d'accord avec Sophie ? | *Sans les problèmes, elles n'auraient pas découvert la pizzeria | Elle a aimé le bus | La chambre était belle | L'hôtel était gratuit
+-- write
+Raconte un voyage où rien ne s'est passé comme prévu. Qu'est-ce que tu aurais dû faire ? | Describe a trip where nothing went to plan. What should you have done?
+
+@@21a | Le télétravail : liberté ou piège ?
+Depuis quelques années, de plus en plus d'employés travaillent à la maison un ou deux jours par semaine. Le télétravail est-il une bonne chose ? Les avis sont partagés.
+
+Pour ses défenseurs, il n'y a que des avantages. On ne perd plus de temps dans les transports, on organise sa journée comme on veut et on peut mieux concilier vie professionnelle et vie privée. Selon une étude récente, les télétravailleurs seraient même plus productifs.
+
+Pourtant, d'autres sont plus critiques. Ce qui manque le plus, disent-ils, ce sont les contacts humains. En travaillant seul chez soi, on se sent parfois isolé, et il devient difficile de séparer le travail du reste de la vie. Bien que l'ordinateur soit éteint, on pense encore aux e-mails.
+
+Le télétravail n'est donc ni un piège ni une liberté totale. À mon avis, la solution se trouve au milieu. Si les entreprises proposaient deux jours de télétravail et trois jours au bureau, tout le monde y gagnerait. Il faut que nous gardions le meilleur des deux mondes : la liberté de la maison et la chaleur d'une équipe.
+-- gloss
+le télétravail = remote work / working from home / teleworking
+le piège = the trap
+employés | l'employé = the employee
+les avis | l'avis = the opinion / the view
+partagés | partagé = divided / split / shared
+défenseurs | le défenseur = the supporter / the defender
+avantages | l'avantage = the advantage
+concilier = to reconcile / to balance / to combine
+une étude | l'étude = the study
+isolé = isolated
+éteint | éteindre = to switch off / to turn off
+au milieu = in the middle
+les entreprises | l'entreprise = the company / the business / the firm
+la chaleur = the warmth / the heat
+une équipe | l'équipe = the team
+-- questions
+Que dit l'étude récente ? | *Les télétravailleurs seraient plus productifs | Les télétravailleurs dorment plus | Le télétravail coûte cher | Personne n'aime le télétravail
+Qu'est-ce qui manque le plus, selon les critiques ? | *Les contacts humains | Un bon ordinateur | Le temps libre | Les transports
+Quel problème pose le travail chez soi ? | *Il est difficile de séparer le travail du reste de la vie | On perd du temps dans les transports | On gagne moins d'argent | On a trop de réunions
+Quelle solution l'auteur propose-t-il ? | *Deux jours de télétravail et trois jours au bureau | Seulement le télétravail | Seulement le bureau | Une semaine sur deux
+-- write
+Le télétravail : pour ou contre ? Donne ton opinion et défends-la. | Remote work: for or against? Give your opinion and defend it.
+
+@@21b | Trois mois plus tard
+Ana relit le premier message qu'elle avait écrit à son frère en arrivant à Lausanne. Elle y avait mis des phrases simples, avec beaucoup de fautes. Aujourd'hui, elle sourit en pensant à tout ce qui a changé.
+
+Elle a un nouvel appartement, une colocataire qui est devenue une amie, et une voisine qui est presque une deuxième grand-mère. Elle comprend la radio, elle lit des romans et elle discute avec ses collègues sans chercher ses mots. Bien sûr, elle fait encore des erreurs, et les nombres lui posent toujours quelques problèmes. Mais ce n'est plus important.
+
+Si on lui avait dit, il y a trois mois, qu'elle se sentirait chez elle si vite, elle ne l'aurait pas cru. Demain, elle passe un examen de français de niveau B1. Elle est un peu nerveuse, pourtant elle sait une chose : quel que soit le résultat, elle peut maintenant vivre une journée normale entièrement en français. Et c'était exactement ce qu'elle voulait.
+-- gloss
+relit | relire = to reread / to read again
+fautes | la faute = the mistake
+devenue | devenir = to become
+chercher ses mots = to search for one's words / to look for words
+bien sûr = of course
+un examen | l'examen = the exam / the test
+le niveau = the level
+quel que soit = whatever (is) / whatever
+le résultat = the result
+entièrement = entirely / completely / fully
+-- questions
+Qu'est-ce qu'Ana relit ? | *Son premier message à son frère | Un roman | Une lettre de sa grand-mère | La recette de la fondue
+Qui est presque une deuxième grand-mère pour elle ? | *Sa voisine | Sa colocataire | Sa directrice | La mère de Karim
+Qu'est-ce qui pose encore des problèmes à Ana ? | *Les nombres | La radio | Les romans | Ses collègues
+Que fera Ana demain ? | *Elle passera un examen de niveau B1 | Elle rentrera en Roumanie | Elle déménagera | Elle commencera un nouveau travail
+-- write
+Écris à toi-même : qu'est-ce qui a changé depuis le début de ton apprentissage du français ? | Write to yourself: what has changed since you started learning French?
+`;
+
+/* ===== 28-course-build.js ===== */
+/* ---------- course: build ----------
+   Turns the course files (21–26) into one structure the app reads:
+     COURSE.items     every word and phrase, with a stable id ("v:" + its French), the day it starts, and its list
+     COURSE.concepts  every grammar concept, with a stable id ("c:" + its name) and the day it unlocks
+     COURSE.texts     the reading texts, one or two per day
+   Course content lives here, not in saved data, so fixing a translation or adding a text reaches every save.
+   Saved data only refers to these ids (flashcard history, concepts switched off). */
+let COURSE=null;
+const slug=s=>strip(norm(s)).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+const NOS=Object.freeze({});
+/* Finds a glossary form in a text: whole words only, any case; a form ending in an apostrophe ("qu'") may touch the next word. */
+function glossRe(s){return new RegExp('(?<![\\p{L}\\u0000-\\u0002])'+s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+(/['’]$/.test(s)?'':'(?![\\p{L}])'),'iu')}
+/* "le lac" is also looked for as "lac", so "près du lac" still links to it. */
+const ARTICLE=/^(?:(?:le|la|les|un|une|des|du|au|aux|de la) |l['’])/i;
+/* Flashcard history lives in state.srs[id]; each item reads it through `it.s` (never saved with the item). */
+function bindItem(it){if(!Object.getOwnPropertyDescriptor(it,'s'))Object.defineProperty(it,'s',{get(){return (state&&state.srs[it.id])||NOS},enumerable:false,configurable:true});return it}
+/* A concept is "on" unless the learner switched it off (state.off[id]). */
+function bindConcept(c){if(!Object.getOwnPropertyDescriptor(c,'on'))Object.defineProperty(c,'on',{get(){return !(state&&state.off[c.id])},set(v){if(v)delete state.off[c.id];else state.off[c.id]=true},enumerable:false,configurable:true});return c}
+
+/* Reading texts are written in a small plain format, see 26-course-texts.js. */
+function parseTexts(src){
+  const out=[];
+  src.split(/^@@/m).slice(1).forEach(block=>{
+    const lines=block.split('\n'),head=lines.shift().split('|').map(s=>s.trim());
+    const t={id:'t'+head[0],day:parseInt(head[0]),title:head[1],paras:[],gloss:[],qs:[],write:null};
+    let sec='text',buf=[];
+    const flush=()=>{if(buf.length){t.paras.push(buf.join(' '));buf=[]}};
+    lines.forEach(raw=>{const line=raw.trim();
+      if(/^--\s*\w+/.test(line)){flush();sec=line.replace(/^--\s*/,'').toLowerCase();return}
+      if(sec==='text'){if(!line)flush();else buf.push(line);return}
+      if(!line)return;
+      if(sec==='gloss'){const [l,e]=line.split(' = ');const [m,f]=l.includes('|')?l.split('|').map(s=>s.trim()):[l.trim(),l.trim()];t.gloss.push({m,alt:m.replace(ARTICLE,''),f,e:(e||'').trim()})}
+      else if(sec==='questions'){const p=line.split('|').map(s=>s.trim()),q={q:p[0],o:[],c:0};p.slice(1).forEach(o=>{if(o[0]==='*'){q.c=q.o.length;o=o.slice(1).trim()}q.o.push(o)});t.qs.push(q)}
+      else if(sec==='write'){const p=line.split('|').map(s=>s.trim());t.write={fr:p[0],en:p[1]||''}}
+    });
+    flush();out.push(t);
+  });
+  return out;
+}
+
+function buildCourse(){
+  const items=new Map(),concepts=new Map(),problems=[];
+  const addItem=(o,list,day)=>{const id='v:'+slug(o.fr);if(!id||id==='v:')return;const ex=items.get(id);
+    if(ex){if(day&&(!ex.day||day<ex.day))ex.day=day;return ex}
+    const it=bindItem({id,fr:o.fr,en:o.en,day:day||0,list,course:true});items.set(id,it);return it};
+  const addSrc=src=>{const r=parseBulk(src,'','Course');r.errors.forEach(e=>problems.push(e));
+    r.items.forEach(o=>addItem(o,o.list,o.day));
+    r.concepts.forEach(c=>{const id='c:'+slug(c.name),ex=concepts.get(id);
+      if(ex){c.t.forEach(t=>{if(!ex.t.some(u=>u[0]===t[0]))ex.t.push(t)});if(c.day&&(!ex.day||c.day<ex.day))ex.day=c.day}
+      else concepts.set(id,bindConcept({id,name:c.name,day:c.day||0,list:c.list,t:c.t.slice(),course:true}))})};
+  [STARTER_CONCEPTS,conjugationSrc(),NOTE_CONCEPTS,numbersBulk(),GRAMMAR,VOCAB,MY_WORDS].forEach(addSrc);
+  const texts=parseTexts(TEXTS);
+  texts.forEach(t=>{t.gloss.forEach(g=>{g.item=addItem({fr:g.f,en:g.e},`Texte, jour ${t.day}: ${t.title}`,t.day)});
+    if(t.qs.some(q=>q.o.length<2))problems.push('Text '+t.id+' has a question with fewer than 2 options');});
+  if(problems.length)console.warn('Course problems:',problems);
+  const byFr=new Map();items.forEach(it=>{const k=norm(it.fr);if(!byFr.has(k))byFr.set(k,it)});
+  const byName=new Map();concepts.forEach(c=>byName.set(norm(c.name),c));
+  COURSE={items:[...items.values()],concepts:[...concepts.values()],texts,byFr,byName,problems,
+    item:id=>items.get(id),textsFor:d=>texts.filter(t=>t.day===d)};
+  return COURSE;
+}
+
+/* ===== 30-check.js ===== */
+/* ---------- answer checking ---------- */
+const strip=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function norm(s){return String(s).toLowerCase().replace(/[’‘`´]/g,"'").replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/[.,!?;:"«»()¿¡…\-–—]/g,' ').replace(/\s+/g,' ').trim()}
+function optx(a){const m=a.match(/\(([^)]*)\)/);if(!m)return [a];const pre=a.slice(0,m.index),post=a.slice(m.index+m[0].length);return optx(pre+post).concat(optx(pre+m[1]+post)).slice(0,16)}
+function variants(ans,fr){const out=[];String(ans).split(fr?/\s+\/\s+|;/:/\/|;/).forEach(a=>{a=a.trim();if(!a)return;optx(a).forEach(x=>out.push(norm(x)))});return out.filter(Boolean)}
+function lev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>2)return 9;let p=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function checkFr(input,expected,alts){
+  const n=norm(input),c=variants(expected,true).concat((alts||[]).map(norm));
+  if(c.includes(n))return 'ok';if(c.map(strip).includes(strip(n)))return 'accent';return 'no';
+}
+function checkEn(input,expected){
+  const de=s=>s.replace(/\bi am\b/g,"i'm").replace(/\bit is\b/g,"it's").replace(/^(to|the|a|an) /,'');
+  const n=de(norm(input)),c=variants(expected,false).map(de);
+  if(c.includes(n))return 'ok';
+  return c.some(x=>x.length>=5&&lev(x,n)<=(x.length>=10?2:1))?'ok':'no';
+}
+
+
+/* ===== 35-srs.js ===== */
+/* ---------- picking material ---------- */
+/* ---------- which words and concepts are available ----------
+   Course words and concepts unlock on their day; your own imports are always available (unless tagged with a level above yours). */
+const planDay=()=>Math.min(21,state.stage||1),curDay=planDay;
+const lvOk=lv=>{if(!lv)return true;const i=state.levels.findIndex(l=>l.n===lv);return i<0||i<=state.li};
+const dayOk=x=>!x.day||x.day<=planDay();
+const pool=()=>allItems().filter(i=>dayOk(i)&&lvOk(i.lv));
+/* A round mixes: words new today (from today's texts and lists) first, then reviews that are due, then other unseen words. */
+function pick(k,n){
+  const T=dayNum(today()),P=shuffle(pool()),d=planDay(),half=Math.ceil(n/2);
+  const today_=P.filter(i=>i.day===d&&!i.s[k]),due=P.filter(i=>i.s[k]&&i.s[k][1]<=T).sort((a,b)=>a.s[k][1]-b.s[k][1]);
+  const nw=P.filter(i=>!i.s[k]&&i.day!==d),rest=P.filter(i=>i.s[k]&&i.s[k][1]>T);
+  const seen=new Set(),out=[];
+  [today_.slice(0,half),due.slice(0,4),today_.slice(half),nw,due.slice(4),rest].forEach(g=>g.forEach(i=>{if(out.length<n&&!seen.has(i.id)){seen.add(i.id);out.push(i)}}));
+  return shuffle(out);
+}
+const ready=k=>{const T=dayNum(today());return pool().filter(i=>!i.s[k]||i.s[k][1]<=T).length};
+const IV=[0,1,3,7,16,35];
+function srs(it,k,ok){const b=it.s[k]?it.s[k][0]:0,nb=ok?Math.min(5,b+1):0;(state.srs[it.id]=state.srs[it.id]||{})[k]=[nb,dayNum(today())+(ok?IV[nb]:0)]}
+function srsRestore(it,k,prev){const e=state.srs[it.id];if(prev)(state.srs[it.id]=e||{})[k]=prev;else if(e){delete e[k];if(!Object.keys(e).length)delete state.srs[it.id]}}
+const studied=()=>allConcepts().filter(c=>c.on&&lvOk(c.lv)&&dayOk(c));
+const newToday=()=>studied().filter(c=>c.day===planDay());
+function templateQs(n){
+  const cs=studied().filter(c=>c.t.length);if(!cs.length)return [];
+  const nw=cs.filter(c=>c.day===planDay()),out=[],seen=new Set();
+  for(let i=0;i<n*8&&out.length<n;i++){const c=out.length<2&&nw.length&&i<12?rnd(nw):rnd(cs),x=rnd(c.t),e=expand(x[0],x[1]);if(seen.has(e.fr))continue;seen.add(e.fr);out.push({k:'g',en:e.en,ans:e.fr,alt:[],concept:c.name})}
+  return shuffle(out);
+}
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+async function aiSentences(n){
+  const cs=studied();if(!AI||!cs.length)return [];
+  let known=pool().filter(i=>i.s.v&&i.s.v[0]>=2);if(known.length<8)known=pool();
+  const vocab=shuffle(known).slice(0,30).map(i=>`${i.fr} (${i.en})`).join('; ');
+  const prompt=`You write practice sentences for an English speaker learning French at level ${state.levels[state.li].n}.
+Grammar concepts the learner has studied: ${cs.map(c=>c.name).join('; ')}.
+Vocabulary the learner knows: ${vocab}.
+Write ${n} short English sentences for the learner to translate into French. Each sentence must practise exactly one of the listed concepts, and use only very common everyday words plus the vocabulary above. Vary the subjects and the concepts.${newToday().length?' Use these newly learned concepts in about half of the sentences: '+newToday().map(c=>c.name).join('; ')+'.':''} Keep each sentence under 12 words.
+Return only a JSON array, no other text: [{"en":"English sentence","fr":"the most natural French translation","alt":["other fully correct French translations, if any"],"concept":"concept name"}]`;
+  const r=await withTimeout(AI.json(prompt,{modelTier:'quick',cache:false}),30000);
+  const arr=Array.isArray(r)?r:(r&&r.sentences)||[];
+  return arr.filter(o=>o&&o.en&&o.fr).slice(0,n).map(o=>({k:'g',en:String(o.en),ans:String(o.fr),alt:Array.isArray(o.alt)?o.alt.map(String):[],concept:String(o.concept||''),ai:true}));
+}
+
+
+/* ===== 40-lessons.js ===== */
+/* ---------- sessions ---------- */
+/* ---------- free questions (longer answers) ---------- */
+const FREEQ=[[
+ ["Présente-toi : comment tu t'appelles, d'où tu viens, où tu habites ?","Introduce yourself: your name, where you are from, where you live."],
+ ["Quelles langues est-ce que tu parles, et pourquoi tu apprends le français ?","Which languages do you speak, and why are you learning French?"],
+ ["Qu'est-ce que tu aimes faire pendant ton temps libre ?","What do you like to do in your free time?"],
+ ["Qu'est-ce que tu as fait hier ?","What did you do yesterday?"],
+ ["Qu'est-ce que tu vas faire demain ?","What are you going to do tomorrow?"],
+ ["Qu'est-ce que tu fais aujourd'hui ?","What are you doing today?"],
+ ["Parle de ta famille.","Talk about your family."]],[
+ ["Décris ta ville ou ton quartier.","Describe your city or your neighbourhood."],
+ ["Décris une personne importante pour toi.","Describe a person who matters to you."],
+ ["Raconte ton dernier week-end.","Tell me about your last weekend."],
+ ["Quels sont tes projets pour l'année prochaine ?","What are your plans for next year?"],
+ ["Tu préfères la ville ou la campagne ? Explique pourquoi.","Do you prefer the city or the countryside? Explain why."],
+ ["Raconte un voyage que tu as fait.","Tell me about a trip you took."],
+ ["Décris un problème que tu as eu récemment et comment tu l'as résolu.","Describe a problem you had recently and how you solved it."],
+ ["Un ami visite ta ville ce week-end. Qu'est-ce que tu lui proposes de faire ?","A friend is visiting your city this weekend. What do you suggest doing?"],
+ ["Comment était ta vie quand tu étais enfant ?","What was your life like when you were a child?"]],[
+ ["Raconte ta journée d'hier en détail, du matin au soir.","Describe yesterday in detail, from morning to evening."],
+ ["Quel film ou quelle série as-tu vu récemment ? Qu'est-ce que tu en as pensé ?","Which film or series did you watch recently? What did you think of it?"],
+ ["Qu'est-ce que tu viens de faire, et qu'est-ce que tu es en train de faire maintenant ?","What have you just done, and what are you doing right now?"],
+ ["À ton avis, quelle est la meilleure façon d'apprendre une langue ?","In your opinion, what is the best way to learn a language?"],
+ ["Décris ta routine du matin.","Describe your morning routine."],
+ ["Parle de quelque chose que tu as lu ou écouté en français cette semaine.","Talk about something you read or listened to in French this week."],
+ ["Qu'est-ce qui est difficile pour toi en français, et pourquoi ?","What is difficult for you in French, and why?"],
+ ["Raconte un souvenir d'enfance.","Tell a childhood memory."]],[
+ ["Que penses-tu des réseaux sociaux ? Donne des avantages et des inconvénients.","What do you think of social media? Give pros and cons."],
+ ["Si tu pouvais vivre n'importe où, où est-ce que tu vivrais, et pourquoi ?","If you could live anywhere, where would you live, and why?"],
+ ["Est-ce que le télétravail est une bonne chose ? Défends ton opinion.","Is remote work a good thing? Defend your opinion."],
+ ["Quel est le plus grand problème de ta ville, et quelle solution proposes-tu ?","What is your city's biggest problem, and what solution do you propose?"],
+ ["Est-ce que la technologie rend la vie meilleure ?","Does technology make life better?"],
+ ["Qu'est-ce que tu aurais aimé apprendre à l'école ?","What would you have liked to learn at school?"],
+ ["Faut-il voyager pour comprendre une autre culture ?","Do you need to travel to understand another culture?"],
+ ["Qu'est-ce qui rend une amitié solide ?","What makes a friendship strong?"],
+ ["Ton train est annulé et tu dois arriver ce soir. Explique le problème au guichet et demande une solution.","Your train is cancelled and you must arrive tonight. Explain the problem at the ticket desk and ask for a solution."]]];
+function freeQ(k){
+  const pi=PHASES.indexOf(phaseOf(Math.max(1,planDay()))),src=Math.random()<.65?FREEQ[pi]:FREEQ.slice(0,pi+1).flat(),min=(k==='fw'?[25,40,50,60]:[20,30,40,50])[pi];
+  /* Writing often asks about a text you have read today */
+  const readToday=COURSE.textsFor(planDay()).filter(t=>t.write&&state.read[t.id]);
+  if(k==='fw'&&readToday.length&&Math.random()<.6){const t=rnd(readToday);return {k,q:{fr:t.write.fr,en:t.write.en},min,text:t.title}}
+  let q=rnd(src);for(let i=0;i<6&&state.lastFree===q[0];i++)q=rnd(src);state.lastFree=q[0];
+  return {k,q:{fr:q[0],en:q[1]},min};
+}
+const words=s=>(s.trim().match(/\S+/g)||[]).length;
+let rec=null;
+function recBtn(){const b=$('#dic');if(b)b.textContent=rec?'Stop speaking':'Start speaking';const c=$('#wc'),a=$('#ans');if(c&&a)c.textContent=words(a.value)}
+function stopRec(){if(rec){const r=rec;rec=null;try{r.stop()}catch(e){}}recBtn()}
+function dictate(){
+  if(rec)return stopRec();
+  try{const r=new SR();r.lang='fr-FR';r.continuous=true;r.interimResults=false;
+    r.onresult=e=>{const a=$('#ans');if(!a)return;for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){const t=e.results[i][0].transcript.trim();if(t&&!a.value.trim().endsWith(t))a.value=(a.value.trim()?a.value.trim()+' ':'')+t}recBtn()};
+    r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){rec=null;srOff=true;toast('The microphone is not available here. Grade yourself instead.');render()}};
+    r.onend=()=>{if(rec===r){try{r.start()}catch(e){rec=null;recBtn()}}};
+    rec=r;r.start();recBtn();
+  }catch(e){rec=null;srOff=true;render()}
+}
+const N=6;
+async function startSession(k){
+  if(k==='r')return startReading();
+  let qs=[];
+  if(k==='g'){
+    qs=templateQs(N);
+    if(AI&&studied().length){
+      view='loading';render();
+      try{const ai=await aiSentences(qs.length?3:N);if(ai.length)qs=shuffle(qs.slice(0,N-ai.length).concat(ai))}catch(e){if(!qs.length)toast('Could not write new sentences just now.')}
+    }
+    if(!qs.length){toast('Add a grammar concept with sentence patterns first.');view='words';return render()}
+  }else{
+    if(k==='w'){const a=pick('v',canSay?3:N).map(it=>({k:'v',it,ans:it.fr})),used=new Set(a.map(q=>q.it.id));
+      const b=canSay?pick('w',N*2).filter(it=>!used.has(it.id)).slice(0,N-a.length).map(it=>({k:'w',it,ans:it.fr})):[];qs=shuffle(a.concat(b))}
+    else qs=pick(k,N).map(it=>({k,it,ans:it.fr}));
+    if(!qs.length){toast('Add some words first.');view='words';return render()}
+    if(k==='w')qs.push(freeQ('fw'));else if(k==='s')qs.push(freeQ('fs'));
+  }
+  sess={k,qs,i:0,right:0,ph:'ask'};view='session';render();
+}
+const cur=()=>sess.qs[sess.i];
+function say(t){try{if(!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';const v=speechSynthesis.getVoices().find(v=>/^fr/i.test(v.lang));if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+const canSay='speechSynthesis' in window;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function settle(r,val){
+  const q=cur();if(sess.ph!=='ask')return;q.res=r;q.val=val;sess.ph='fb';
+  if(r!=='no')sess.right++;
+  if(q.it){q.prev=q.it.s[q.k]?q.it.s[q.k].slice():null;srs(q.it,q.k,r!=='no')}
+  state.started=true;save();render();
+}
+function check(){
+  const q=cur(),el=$('#ans'),val=el?el.value.trim():'';if(!val||sess.ph!=='ask')return;
+  if(q.k==='fw'||q.k==='fs'){stopRec();return gradeFree(val)}
+  settle(q.k==='l'?checkEn(val,q.it.en):checkFr(val,q.ans,q.alt),val);
+}
+async function gradeFree(val){
+  const q=cur(),spoken=q.k==='fs';if(q.busy)return;
+  const lenOk=words(val)>=Math.ceil(q.min*.7);
+  if(!AI){q.fb={off:true};return settle(lenOk?'ok':'no',val)}
+  q.busy=true;const b=$('#chk');if(b){b.disabled=true;b.textContent='Reading your answer…'}
+  let fb=null;
+  try{fb=await withTimeout(AI.json(`A learner of French at level ${state.levels[state.li].n}, on day ${Math.max(1,planDay())} of a 21-day intensive course, was asked this question: "${q.q.fr}"
+They ${spoken?'answered aloud. Below is a speech-recognition transcript of what they said, so ignore punctuation, capitalisation and spelling, and judge only grammar, word choice and whether it answers the question':'answered in writing'}. About ${q.min} words or more were requested.
+Their answer: """${val}"""
+Grade it for a learner at that level. Return only JSON: {"score":0-100,"corrected":"their answer with every error fixed, keeping their meaning and their wording wherever it was correct","notes":["up to 4 short notes in English, each naming one error and its fix, recurring errors first"]}. Score 60 or more means understandable French that answers the question at roughly the requested length, with only minor errors.`,{modelTier:'default',cache:false}),45000)}catch(e){}
+  q.busy=false;
+  if(fb&&typeof fb.score==='number'){q.fb=fb;if(fb.corrected)q.ans=String(fb.corrected);settle(fb.score>=60?'ok':'no',val)}
+  else{q.fb={off:true};settle(lenOk?'ok':'no',val)}
+}
+function override(){const q=cur();if(q.res!=='no')return;q.res='ok';sess.right++;if(q.it){srsRestore(q.it,q.k,q.prev);srs(q.it,q.k,true)}save();render()}
+function next(){if(sess.ph!=='fb')return;if(sess.i<sess.qs.length-1){sess.i++;sess.ph='ask';render()}else finish()}
+function offer(k,acc){
+  const ok=id=>acc>=.8||CARDS[id].r===0,ids=Object.keys(CARDS).filter(ok);
+  return shuffle(ids.filter(id=>CARDS[id].s===k)).concat(shuffle(ids.filter(id=>CARDS[id].s!==k))).slice(0,3);
+}
+function finish(){
+  const n=sess.qs.length,acc=sess.right/n,xp=sess.right*(sess.k==='g'?15:10);
+  const passed=acc>=.5;addXp(xp);if(passed)state.day.done[sess.k]=(state.day.done[sess.k]||0)+1;
+  if(passed&&sess.text)state.read[sess.text.id]=(state.read[sess.text.id]||0)+1;
+  reward={k:sess.k,right:sess.right,n,xp,passed,opts:passed?offer(sess.k,acc):[]};
+  sess=null;view='reward';save();render();
+}
+function listen(){
+  const q=cur();
+  try{const r=new SR();r.lang='fr-FR';r.maxAlternatives=3;
+    r.onresult=e=>{const alts=[...e.results[0]].map(a=>a.transcript);settle(alts.some(a=>checkFr(a,q.it.fr,[])!=='no')?'ok':'no','Heard: '+alts[0])};
+    r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){srOff=true;toast('The microphone is not available here. Grade yourself instead.');render()}else toast('Did not catch that. Try again.')};
+    r.start();toast('Listening…');
+  }catch(e){srOff=true;render()}
+}
+
+
+/* ---------- reading lesson ----------
+   Read the day's text (tap a highlighted word for its meaning), then answer multiple-choice questions.
+   Texts you have not passed yet come first; after that the day's texts take turns. */
+function textForToday(){
+  const d=planDay(),ts=state.stage>21?COURSE.texts:COURSE.textsFor(d);if(!ts.length)return null;
+  return ts.slice().sort((a,b)=>(state.read[a.id]||0)-(state.read[b.id]||0))[0];
+}
+function startReading(){
+  const t=textForToday();if(!t){toast('There is no text for this day yet.');return}
+  glossSel=null;
+  sess={k:'r',text:t,qs:t.qs.map(q=>{const ord=shuffle(q.o.map((_,i)=>i));return {k:'rq',q:q.q,opts:ord.map(i=>q.o[i]),c:ord.indexOf(q.c)}}),i:0,right:0,ph:'read'};
+  view='session';window.scrollTo(0,0);render();
+}
+function readAnswer(i){const q=cur();if(sess.ph!=='ask')return;q.pick=i;settle(i===q.c?'ok':'no',q.opts[i])}
+/* A glossary word; when tapped, its meaning opens inline right after it (tap again to close). */
+function glossBtn(t,i,shown){const on=glossSel===i,g=t.gloss[i];
+  return `<button class="gl ${on?'on':''}" data-a="gloss" data-i="${i}" aria-expanded="${on}">${esc(shown)}</button>`+(on?`<span class="glt" role="note"><b>${esc(g.f)}</b> ${esc(g.e)}${canSay?' <button class="link" data-a="sayword">Hear it</button>':''}</span>`:'')}
+/* The text as HTML, with each glossary word turned into a button (first occurrence only, longest forms first). */
+function textHtml(t){
+  const order=t.gloss.map((g,i)=>i).sort((a,b)=>t.gloss[b].m.length-t.gloss[a].m.length),done=new Set();
+  return t.paras.map(p=>{const hits=[];let s=p;
+    order.forEach(i=>{if(done.has(i))return;const g=t.gloss[i];
+      const m=s.match(glossRe(g.m))||(g.alt!==g.m&&g.alt?s.match(glossRe(g.alt)):null);if(!m)return;done.add(i);hits.push([i,m[0]]);s=s.slice(0,m.index)+'\u0001'+(hits.length-1)+'\u0002'+s.slice(m.index+m[0].length)});
+    return '<p>'+s.split(/\u0001(\d+)\u0002/).map((part,j)=>j%2?glossBtn(t,hits[+part][0],hits[+part][1]):esc(part)).join('')+'</p>'}).join('');
+}
+
+/* ===== 50-battle.js ===== */
+/* ---------- battle ---------- */
+const sv=v=>Math.round(v*SVK*(1+.03*((B?B.day:curDay())-1))*(state.diff||1));
+const SVK=2.3;
+/* boss HP per day, calibrated in simulated fights: a player answering 75% right with only the required lessons wins about 7 in 10 */
+const DAYHP=[165,190,110,160,210,135,190,305,200,250,355,245,265,325,205,235,315,220,290,280,205];
+const bossHpFor=d=>Math.round(DAYHP[Math.min(21,Math.max(1,d))-1]*(state.diff||1));
+const movesOf=m=>Array.isArray(m[0])?m:[m];
+const intent=()=>movesOf(B.def.m[B.boss.mi%B.def.m.length]);
+function bossDmg(v){let d=sv(v)+B.boss.str;if(B.boss.weak)d=Math.floor(d*.75);if(B.p.vuln)d=Math.floor(d*1.5);return Math.max(0,d)}
+function intentText(){return intent().map(m=>m[0]==='a'?`Attacks for ${bossDmg(m[1])}${m[2]>1?' × '+m[2]:''}`:m[0]==='b'?`Braces for ${sv(m[1])} Block`:m[0]==='s'?`Gains ${m[1]} Strength`:m[0]==='w'?'Will make you Weak':'Will make you Vulnerable').join(', then ')}
+function startBattle(){
+  const day=curDay(),bi=bossFor(day),def=BOSSES[bi],hp=bossHpFor(day),deck=state.day.deck.filter(id=>CARDS[id]);
+  state.hp=maxHp();state.day.deck=[];
+  B={tier:0,day,bi,def,seenQ:new Set(),q:null,mult:1,boss:{hp,max:hp,blk:0,str:0,weak:0,vuln:0,mi:0},p:{blk:0,str:0,weak:0,vuln:0,en:0,pw:{blk:0,draw:0}},draw:shuffle(deck),emax:energyFor(deck.length),hand:[],disc:[],played:0,dbl:false,msg:def.t,over:null};
+  save();view='battle';startTurn();
+}
+/* Energy per turn grows with the deck: 3, plus 1 for every 3 cards beyond 7 (4 at 10 cards, 5 at 13, 6 at 16). */
+const energyFor=n=>Math.min(6,3+Math.floor(Math.max(0,n-7)/3));
+function startTurn(){B.p.blk=B.p.pw.blk;B.p.en=B.emax;B.played=0;B.dbl=false;drawN(B.emax+2+B.p.pw.draw);render()}
+function play(i){
+  const id=B.hand[i],c=CARDS[id];if(!c||B.over||B.q)return;
+  if(c.c>B.p.en){toast('Not enough energy.');return}
+  B.p.en-=c.c;B.hand.splice(i,1);B.played++;
+  const fin=ok=>{B.mult=ok===false?.5:1;B.dealt=0;c.f();B.mult=1;if(!c.x)B.disc.push(id);
+    B.msg=c.atk?(ok?`Correct: ${c.n} hits at full strength for ${B.dealt}.`:`Wrong: ${c.n} hits at half strength for ${B.dealt}.`):`You played ${c.n}.`;
+    if(B.boss.hp<=0)return endBattle(true);save();render()};
+  if(c.atk)ask('atk',fin);else fin(null);
+}
+function endTurn(){
+  if(!B||B.over||B.q)return;B.disc.push(...B.hand);B.hand=[];B.boss.blk=0;B.said=[];B.mv=intent().slice();bossMove();
+}
+function bossMove(){
+  if(!B.mv.length)return bossDone();
+  const m=B.mv.shift();
+  if(m[0]==='a')return ask('def',ok=>{let tot=0,full=0;
+    for(let i=0;i<(m[2]||1);i++){let d=bossDmg(m[1]);full+=d;if(ok)d=Math.ceil(d/2);const ab=Math.min(B.p.blk,d);B.p.blk-=ab;state.hp-=d-ab;tot+=d-ab}
+    B.said.push(ok?`swung for ${full}, you dodged half and took ${tot}`:tot?`hit you for ${tot}`:'attacked, and you blocked it all');
+    if(state.hp<=0){B.msg=`${B.def.n} ${B.said.join(' and ')}.`;return endBattle(false)}
+    B.fx=true;bossMove()});
+  if(m[0]==='b'){B.boss.blk+=sv(m[1]);B.said.push('braced')}
+  else if(m[0]==='s'){B.boss.str+=m[1];B.said.push('grew stronger')}
+  else if(m[0]==='w'){B.p.weak+=m[1]+1;B.said.push('made you Weak')}
+  else if(m[0]==='u'){B.p.vuln+=m[1]+1;B.said.push('made you Vulnerable')}
+  bossMove();
+}
+function bossDone(){
+  ['weak','vuln'].forEach(s=>{if(B.boss[s])B.boss[s]--;if(B.p[s])B.p[s]--});
+  B.boss.mi++;if(B.boss.mi%B.def.m.length===0){B.boss.str+=2;B.said.push('is getting angrier')}
+  B.msg=`${B.def.n} ${B.said.join(' and ')}.`;
+  save();startTurn();
+}
+function endBattle(won){
+  B.over=won?'won':'lost';state.started=true;
+  if(won){B.gain=60+10*B.day;addXp(B.gain);state.wins=(state.wins||0)+1;
+    if(state.stage===B.day){state.stage++;state.day.done={}}}
+  state.hp=maxHp();save();render();
+}
+
+/* ---------- battle questions (multiple choice) ---------- */
+const slotsOf=t=>[...t.matchAll(/\{([^}]*)\}/g)].map(m=>m[1].split('|'));
+const fillT=(t,p)=>{let i=0;return t.replace(/\{([^}]*)\}/g,(_,g)=>{const a=g.split('|');return (a[p[i++]]??a[0]).trim()}).replace(/\s+/g,' ').trim()};
+const firstEn=s=>String(s).split(/\s+\/\s+|\//)[0].trim();
+function mcqGrammar(){
+  const cs=studied().filter(c=>c.t.some(t=>slotsOf(t[0]).length));if(!cs.length)return null;
+  const nt=cs.filter(c=>c.day===planDay()),c=nt.length&&Math.random()<.5?rnd(nt):rnd(cs),t=rnd(c.t.filter(t=>slotsOf(t[0]).length)),S=slotsOf(t[0]),p=S.map(a=>Math.floor(Math.random()*a.length));
+  const fr=fillT(t[0],p),en=fillT(t[1],p),seen=new Set([fr]),ens=new Set([norm(en)]),opts=[];
+  const tryAdd=q=>{const f=fillT(t[0],q),e=fillT(t[1],q);if(seen.has(f)||ens.has(norm(e)))return;seen.add(f);ens.add(norm(e));opts.push(f)};
+  for(let n=0;n<40&&opts.length<3;n++){const q=p.slice(),s=Math.floor(Math.random()*S.length);if(S[s].length<2)continue;q[s]=(q[s]+1+Math.floor(Math.random()*(S[s].length-1)))%S[s].length;if(n>20){const s2=Math.floor(Math.random()*S.length);q[s2]=Math.floor(Math.random()*S[s2].length)}tryAdd(q)}
+  if(opts.length<3)return null;
+  return {ask:'Which is the French for',big:en,chip:c.name,fr:true,opts:[fr,...opts],c:0};
+}
+function mcqVocab(){
+  const P=pool();if(P.length<4)return null;
+  const seen=P.filter(i=>i.s.v||i.s.w||i.s.l),src=seen.length>=4?seen:P,it=rnd(src),toFr=Math.random()<.5;
+  const show=i=>toFr?i.fr:firstEn(i.en),key=i=>norm(toFr?i.fr:firstEn(i.en)),wc=i=>i.fr.split(' ').length;
+  const others=shuffle(P.filter(i=>i!==it&&key(i)!==key(it)&&norm(firstEn(i.en))!==norm(firstEn(it.en))&&norm(i.fr)!==norm(it.fr)));
+  const sameList=others.filter(i=>i.list===it.list);others.sort((a,b)=>(a.list===it.list?0:9)-(b.list===it.list?0:9)||Math.abs(wc(a)-wc(it))-Math.abs(wc(b)-wc(it)));
+  const opts=[],keys=new Set([key(it)]);for(const o of others){if(opts.length>=3)break;if(keys.has(key(o)))continue;keys.add(key(o));opts.push(show(o))}
+  if(opts.length<3)return null;
+  return toFr?{ask:'How do you say',big:firstEn(it.en),fr:true,opts:[it.fr,...opts],c:0}:{ask:'What does this mean?',big:it.fr,bigFr:true,opts:[firstEn(it.en),...opts],c:0};
+}
+function mcqNumber(){
+  const hard=[16,17,19,21,31,41,51,61,66,69,70,71,72,75,76,77,79,80,81,84,88,90,91,92,95,96,97,99,100,101,180,250,1000];
+  const n=Math.random()<.7?rnd(hard):20+Math.floor(Math.random()*80);
+  const near=shuffle([n+10,n-10,n+1,n-1,n+20,n-20,n+11,n-11].filter(x=>x>=0&&x<10000&&x!==n)).slice(0,3);
+  if(Math.random()<.5)return {ask:'Which one is',big:String(n),fr:true,opts:[frNum(n),...near.map(frNum)],c:0};
+  return {ask:'Which number is this?',big:frNum(n),bigFr:true,opts:[String(n),...near.map(String)],c:0};
+}
+function mcq(){
+  const r=Math.random(),order=r<.45?[mcqGrammar,mcqVocab,mcqNumber]:r<.8?[mcqVocab,mcqGrammar,mcqNumber]:[mcqNumber,mcqGrammar,mcqVocab];
+  for(let tries=0;tries<6;tries++){for(const f of order){const q=f();if(!q)continue;if(B&&B.seenQ.has(q.big)&&tries<5)continue;
+    const ord=shuffle(q.opts.map((o,i)=>i));q.c=ord.indexOf(0);q.opts=ord.map(i=>q.opts[i]);if(B)B.seenQ.add(q.big);return q}}
+  return mcqNumber();
+}
+function ask(kind,then){B.q=Object.assign(mcq(),{kind,then,ans:null});render()}
+function qAnswer(i){const q=B&&B.q;if(!q||q.ans!=null)return;q.ans=i;render();if(i===q.c)setTimeout(()=>{if(B&&B.q===q)qResolve()},900)}
+function qResolve(){const q=B&&B.q;if(!q||q.ans==null)return;B.q=null;q.then(q.ans===q.c)}
+
+
+/* ===== 60-map-home.js ===== */
+/* ---------- the map: self-paced days ---------- */
+const PC=['var(--k-s)','var(--k-g)','var(--k-l)','var(--k-v)'],PT=['#fff','var(--paper-ink)','#fff','#fff'];
+const dayStatus=d=>d<state.stage?'done':d===state.stage?'cur':'locked';
+function dayTopics(d){
+  const cs=allConcepts().filter(c=>c.day===d).map(c=>c.name);
+  if(cs.length)return cs;
+  return d===21?['Everything from days 1 to 20','The final test: listening, reading, writing and speaking']:['Review what you have learned so far'];
+}
+function vMap(){
+  const P=state.plan,cd=curDay(),nodes=[],parts=[];let y=0,gi=0;
+  PHASES.forEach((p,pi)=>{
+    const done=Math.max(0,Math.min(p.to,state.stage-1)-p.from+1);
+    parts.push(`<div class="pb" style="top:${y}px;--pc:${PC[pi]}"><i></i><div class="g"><b>Phase ${ROMAN[pi]}, ${p.n}</b><small>Days ${p.from}–${p.to}, ${p.lv}</small></div><span class="pbs">${done}/${p.to-p.from+1}</span></div>`);
+    y+=56+38;
+    for(let d=p.from;d<=p.to;d++,gi++){const x=Math.round(50+27*Math.sin(gi*1.05+.4));nodes.push({d,x,y:y+36,pi});y+=104}
+    y+=4;
+  });
+  const H=y,seg=[];
+  for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i],my=(a.y+b.y)/2,lit=dayStatus(b.d)!=='locked';
+    seg.push(`<path d="M${a.x} ${a.y} C${a.x} ${my} ${b.x} ${my} ${b.x} ${b.y}" class="${lit?'lit':''}" style="${lit?'stroke:'+PC[b.pi]:''}"/>`)}
+  const nodeHtml=nodes.map(n=>{const s=dayStatus(n.d),right=n.x<50||n.x===50,bi=bossFor(n.d),t=dayTopics(n.d);
+    const lab=`<div class="nl ${s} ${right?'r':'l'}" style="top:${n.y}px;${right?`left:calc(${n.x}% + 48px)`:`right:calc(${100-n.x}% + 48px)`}">${s==='cur'?'<em class="here">You are here</em>':''}<b>Day ${n.d}${DAYNOTE[n.d]?(n.d===7?', checkpoint':', final test'):''}</b><span>${esc(t[0])}${t.length>1?` and ${t.length-1} more`:''}</span><small>${s==='done'?'Beat '+esc(BOSSES[bi].n):'Boss: '+esc(BOSSES[bi].n)}</small></div>`;
+    return `<button class="nd ${s}" data-a="node" data-d="${n.d}" style="left:${n.x}%;top:${n.y}px;--pc:${PC[n.pi]};--pt:${PT[n.pi]}" aria-label="Day ${n.d}, ${s==='done'?'done':s==='cur'?'current day':'locked'}">${n.d}${s==='done'?'<i>✓</i>':''}</button>${lab}`}).join('');
+  const chk=(key,label)=>`<label class="chk"><input type="checkbox" data-p="${esc(key)}" ${P.done[key]?'checked':''}>${esc(label)}</label>`;
+  return `<h1>Your 21 days</h1>
+  <p class="muted">${state.stage>21?'All 21 days are done. Keep practising as long as you like.':`Day ${cd} of 21, at your own pace. Finish a day’s lessons, then beat its boss to open the next day.`}</p>
+  <div class="map" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true">${seg.join('')}</svg>${parts.join('')}${nodeHtml}</div>
+  <h2>Notes from your plan</h2>
+  <p class="muted">Goal: B1-ish functional French. Priority: listening, then reading, speaking, writing.</p>
+  ${PHASES.map((p,i)=>`<details><summary>Phase ${ROMAN[i]}, ${p.n} (days ${p.from}–${p.to})</summary>
+    <p>${esc(p.goal)}</p>${p.focus.map(f=>`<p class="muted"><b>${f[0]}.</b> ${esc(f[1])}</p>`).join('')}
+    ${p.grammar?`<p style="margin-top:12px"><b>Grammar</b></p><div class="chks">${p.grammar.map(g=>chk(i+':'+g,g)).join('')}</div>`:''}
+    ${p.can?`<p><b>By the end I can</b></p><div class="chks one">${p.can.map(g=>chk(i+':'+g,g)).join('')}</div>`:''}</details>`).join('')}
+  <details><summary>Scoreboard</summary><p class="muted">The trend matters more than the absolute score.</p>
+  <div class="scroll"><table><tr><th>Day</th>${SCORE_K.map(k=>`<th>${k[1]}</th>`).join('')}</tr>
+  ${SCORE_DAYS.map(day=>`<tr><td>${day}${day===cd?' ●':''}</td>${SCORE_K.map(k=>`<td><input class="sc" type="text" data-s="${day}:${k[0]}" aria-label="Day ${day} ${k[1]}" value="${esc((P.scores[day]||{})[k[0]]||'')}"></td>`).join('')}</tr>`).join('')}</table></div></details>
+  <details><summary>Day 7 checkpoint</summary><p class="muted">A mini A2-style test: 30 min listening, 30 min reading, 15 min recorded speaking, about 150 words of writing. Score each skill and fluency out of 5. The point is to find what is holding you back, not to judge yourself.</p></details>
+  <details><summary>Day 21 final test</summary><p class="muted">A B1 simulation: 25 to 30 min listening on new material without subtitles, 45 min reading unseen texts, 45 min writing 160 to 200+ words, and 15 min speaking (personal interview, an interaction or problem, then express and defend an opinion). Final question: could I spend a normal day operating primarily in French?</p></details>
+  <details><summary>The listening loop</summary><ol class="steps muted"><li>Listen with no subtitles. What did I understand?</li><li>Read the French transcript and find what I missed.</li><li>Listen again with no subtitles.</li><li>Shadow: speak along with the audio. Repeat.</li></ol><p class="muted">French subtitles beat English ones, which turn listening into reading English.</p></details>
+  ${mapSheet?vSheet(mapSheet):''}`;
+}
+function vSheet(d){
+  const s=dayStatus(d),p=phaseOf(d),pi=PHASES.indexOf(p),b=BOSSES[bossFor(d)],t=dayTopics(d),req=lessonPlan(d);
+  return `<div class="scrim" data-a="sheetclose"></div><div class="sheet" role="dialog" aria-label="Day ${d}" style="--pc:${PC[pi]}">
+  <div class="sh"><div><b>Day ${d}</b><small>Phase ${ROMAN[pi]}, ${p.n}</small></div><button class="x" data-a="sheetclose" aria-label="Close">✕</button></div>
+  <p class="muted" style="margin:12px 0 4px">Most important to learn</p><ul class="topics">${t.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+  ${DAYNOTE[d]?`<p class="muted">${esc(DAYNOTE[d])}</p>`:''}
+  ${COURSE.textsFor(d).length?`<p class="muted" style="margin:12px 0 4px">Reading</p><p>${COURSE.textsFor(d).map(x=>'<span class="fr">'+esc(x.title)+'</span>'+(state.read[x.id]?' ✓':'')).join(', ')}</p>`:''}
+  <p class="muted" style="margin:12px 0 4px">Lessons</p><p>${req.map(q=>`${SK[q.k].n} ×${q.need}`).join(', ')}</p>
+  <p class="muted" style="margin:12px 0 4px">Boss</p><p><b>${esc(b.n)}</b>, ${bossHpFor(d)} HP</p>
+  ${s==='cur'?'<button class="btn wide" data-a="tab" data-v="home">Go to this day’s lessons</button>':s==='done'?'<p><b>Done.</b> You beat this boss.</p>':`<p class="muted">Finish day ${d-1} to unlock this day.</p>`}</div>`;
+}
+function lessonPlan(d){
+  const p=phaseOf(d),req=Object.assign({},p.q),nc=allConcepts().filter(c=>c.day===d&&c.on).length;
+  req.r=COURSE.textsFor(d).length;
+  if(nc>1)req.g=Math.max(req.g||0,2);
+  if(!canSay&&req.l){req.w=(req.w||0)+req.l;delete req.l}
+  return ['g','l','w','s','r'].filter(k=>req[k]).map(k=>({k,need:req[k]}));
+}
+function quests(){
+  if(state.stage>21)return [];
+  return lessonPlan(state.stage).map(({k,need})=>{const have=state.day.done[k]||0;return {k,need,have:Math.min(have,need),ok:have>=need}});
+}
+function lessonLine(k){const q=quests().find(q=>q.k===k);if(!q)return '';return q.ok?`${SK[k].n} lessons for day ${state.stage} are done.`:`${SK[k].n} lessons for day ${state.stage}: ${q.have} of ${q.need}.`}
+const LDESC={g:'Translate sentences into French',l:'Hear French, type the meaning',w:'Words, dictation, then a free answer',s:'Say words aloud, then answer a question',r:'Read the day’s text, then answer questions about it'};
+function vHome(){
+  const L=state.levels[state.li],d=state.day,n=d.deck.length,st=state.stage,fin=st>21;
+  const ph=phaseOf(curDay()),pi=PHASES.indexOf(ph),qs=fin?Object.keys(SK).map(k=>({k,need:0,have:0,ok:true})):quests(),all=qs.every(q=>q.ok);
+  const nt=newToday().map(c=>c.name),topics=fin?[]:dayTopics(st);
+  const mini=`<button class="mini" data-a="tab" data-v="plan" style="--pc:${PC[pi]}" aria-label="Open the map"><span class="mt"><b>Phase ${ROMAN[pi]}, ${ph.n}</b><small>${fin?'Plan complete':'Day '+st+' of 21'}</small></span><span class="dots">${Array.from({length:ph.to-ph.from+1},(_,i)=>{const dd=ph.from+i,s=dayStatus(dd);return `<i class="${s}">${s==='done'?'✓':dd}</i>`}).join('')}</span></button>`;
+  const row=q=>{const off=q.k==='l'&&!canSay,focus=q.k==='g'&&nt.length?'Focus: '+nt.join(', '):LDESC[q.k];
+    return `<button class="lrow e-${q.k}" data-a="go" data-k="${q.k}" ${off?'disabled':''}><span class="g"><b>${SK[q.k].n}</b><small>${esc(focus)}</small></span>${fin?'':`<span class="lp ${q.ok?'ok':''}">${q.ok?'✓ Done':q.have+' / '+q.need}</span>`}</button>`};
+  const bi=bossFor(curDay()),b=BOSSES[bi];
+  const bossTxt=fin?'':!all?`<p><b>${esc(b.n)}</b></p><p class="muted">${bossHpFor(st)} HP. Finish the lessons above to face it.</p><button class="btn wide" disabled>Finish the lessons first</button>`
+    :n<3?`<p><b>${esc(b.n)}</b></p><p class="muted">Lessons done. You need at least 3 cards: repeat any lesson to earn more.</p><button class="btn wide" disabled>Earn ${3-n} more card${3-n===1?'':'s'}</button>`
+    :`<p><b>${esc(b.n)} is waiting</b></p><p class="muted">${bossHpFor(st)} HP. The fight spends all ${n} cards, win or lose. Repeat lessons first for a stronger deck.</p><button class="btn wide" data-a="fight">Fight the boss</button>`;
+  return `<div class="top">
+    <div class="stat"><div class="row"><b>${esc(L.n)}</b><small>${state.xp} / ${L.x} XP</small></div><div class="bar"><i style="width:${Math.min(100,state.xp/L.x*100)}%"></i></div></div>
+    <div class="stat"><div class="row"><b>${n} card${n===1?'':'s'}</b><small>${energyFor(n)} energy</small></div><div class="bar deckbar"><i style="width:${Math.min(100,n/15*100)}%"></i></div></div>
+  </div>
+  ${mini}
+  ${fin?`<h1 style="margin-top:22px">All 21 days done</h1><p class="muted">Every boss is beaten. Keep practising: everything below still trains your French and earns XP.</p>`
+  :`<h1 style="margin-top:22px">Day ${st}</h1>
+  <section class="learn" style="--pc:${PC[pi]}"><p class="muted">Most important to learn</p><ul class="topics">${topics.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${DAYNOTE[st]?`<p class="muted" style="margin-top:8px">${esc(DAYNOTE[st])}</p>`:''}${COURSE.textsFor(st).length?`<p class="muted" style="margin-top:8px">Reading: ${COURSE.textsFor(st).map(x=>'<span class="fr">'+esc(x.title)+'</span>'+(state.read[x.id]?' ✓':'')).join(', ')}</p>`:''}<p class="muted" style="margin-top:8px"><b>${ph.focus[0][0]}.</b> ${esc(ph.focus[0][1])}</p></section>`}
+  <h2>${fin?'Practice':'Lessons'}</h2>
+  ${fin?'':'<p class="muted">Each lesson passed with half or more right earns a card. Repeat any lesson for more cards; 80% or more brings the strong ones.</p>'}
+  <div class="lessons">${qs.map(row).join('')}</div>
+  ${fin?'':`<section class="bosspanel">${tarot(bi,'Day '+st)}<div>${bossTxt}</div></section>`}`;
+}
+
+
+/* ===== 70-views.js ===== */
+/* ---------- views ---------- */
+function cardHtml(id,attrs,cls){const c=CARDS[id];if(!c)return '';return `<button class="card k-${c.s} r${c.r} ${cls||''}" ${attrs||''}><span class="cost">${c.c}</span><span class="cn">${c.n}</span><span class="cd">${c.d}</span><span class="ck">${SK[c.s].n}${c.r?' ✦':''}${c.atk?', asks a question':''}</span></button>`}
+function tarot(i,label){const b=BOSSES[i];return `<div class="tarot b${i}"><div class="num">${esc(label||'')}</div><div class="glyph">${esc(b.g)}</div><div class="nm">${esc(b.n)}</div></div>`}
+function vDeck(){
+  const d=state.day.deck;
+  return `<h1>Today’s deck</h1><p class="muted">${d.length?`${d.length} card${d.length===1?'':'s'}. Every boss fight spends the whole deck, win or lose. To remove one, finish a Writing lesson and choose to cross a card out.`:'Your deck is empty. Pass any lesson to earn your first card.'}</p>
+  <div class="cards">${d.map(id=>cardHtml(id,'tabindex="-1"')).join('')}</div>
+  <h2>All 8 cards</h2>
+  <div class="cards">${Object.keys(CARDS).map(id=>cardHtml(id,'tabindex="-1"')).join('')}</div>
+  <p class="muted">✦ marks a strong card, offered after a round scored 80% or more. Each card is labelled with the exercise that gives it most often.</p>
+  <h2>How a fight works</h2>
+  <p class="muted">Your Energy each turn grows with your deck: 3, then 1 more for every 3 cards beyond 7 (4 at 10 cards, 5 at 13, up to 6 at 16). You draw 2 more cards than your Energy. Every attack card asks a French question first: right, it hits at full strength; wrong, at half. Every boss attack asks one too: right, you dodge half the damage. Weak means 25% less damage dealt, Vulnerable means 50% more damage taken.</p>`;
+}
+function vWords(){
+  const lists={},row=(o,n)=>{const L=(lists[n]=lists[n]||{n,w:0,c:0,course:!!o.course,day:0});if(o.day&&(!L.day||o.day<L.day))L.day=o.day;return L};
+  allItems().forEach(i=>row(i,i.list).w++);allConcepts().forEach(c=>row(c,c.list).c++);
+  const mine=Object.values(lists).filter(l=>!l.course),course=Object.values(lists).filter(l=>l.course).sort((a,b)=>a.day-b.day||a.n.localeCompare(b.n));
+  const lrow=l=>`<div><div class="g"><b>${esc(l.n)}</b><br><small>${l.w?l.w+' word'+(l.w===1?'':'s')+' and phrase'+(l.w===1?'':'s'):''}${l.w&&l.c?', ':''}${l.c?l.c+' grammar concept'+(l.c===1?'':'s'):''}${l.course?(l.day?', from day '+l.day:'')+(l.day>planDay()?' (locked)':''):''}</small></div>${l.course?'':`<button class="link" data-a="dellist" data-n="${esc(l.n)}">${delArm===l.n?'Tap again to delete':'Delete'}</button>`}</div>`;
+  const crow=c=>`<div><input type="checkbox" id="c${c.id}" data-c="${c.id}" ${c.on?'checked':''}><label class="g" for="c${c.id}" style="margin:0">${esc(c.name)}<br><small style="font-weight:400">${c.day?'Day '+c.day+(dayOk(c)?'':' (locked)')+', ':''}${esc(c.list)}, ${c.t.length} pattern${c.t.length===1?'':'s'}</small></label></div>`;
+  const cs=allConcepts().slice().sort((a,b)=>(a.day||0)-(b.day||0));
+  return `<h1>Words and grammar</h1>
+  <label for="bulk">Paste a list</label>
+  <textarea id="bulk" spellcheck="false" autocapitalize="off" placeholder="le chat = the cat&#10;la gare = the station"></textarea>
+  <div class="two"><div><label for="blist">List name</label><input type="text" id="blist" value="My words"></div>
+  <div><label for="blv">Level</label><select id="blv">${state.levels.map((l,i)=>`<option ${i===state.li?'selected':''}>${esc(l.n)}</option>`).join('')}</select></div></div>
+  <p style="margin-top:12px"><button class="btn wide" data-a="import">Add to my words</button></p>
+  ${importMsg?`<p>${esc(importMsg.ok)}</p>${importMsg.errors.map(e=>`<p class="err">${esc(e)}</p>`).join('')}`:''}
+  <details><summary>How to format a list</summary>
+  <p class="muted">One entry per line, French first, then <b>=</b> (or a tab, so spreadsheet columns paste straight in), then English. Use <b>/</b> between English answers that should both count.</p>
+<pre># list: Travel
+# level: B1.1
+le quai = the platform
+le billet = the ticket / the fare
+Je me suis trompé de train = I got on the wrong train
+
+## Futur simple
+{Je prendrai|Nous prendrons} le {train|bus} = {I will take|We will take} the {train|bus}</pre>
+  <p class="muted">A line starting with <b>##</b> names a grammar concept. The lines right under it are sentence patterns: each {a|b} slot picks one option at random, and the same pick is used on the English side, so the first French slot pairs with the first English slot. A blank line ends the concept. Put <b># day: 9</b> above a concept to keep it locked until day 9 of your plan. With Claude available, Grammar rounds also get new sentences written from your studied concepts and the words you know.</p>
+  <p class="muted">Words tagged with a level above your current one wait until you reach it. A JSON array of {"fr","en","level"} objects works too.</p></details>
+  <h2>Your lists</h2>
+  ${mine.length?`<div class="list">${mine.map(lrow).join('')}</div>`:'<p class="muted">Nothing of your own yet. Paste a list above.</p>'}
+  <h2>The course</h2>
+  <p class="muted">Words, phrases and grammar that come with the 21-day plan. Each unlocks on its day; words from a day's texts are in lists named after the text.</p>
+  <details><summary>${course.length} course lists</summary><div class="list">${course.map(lrow).join('')}</div></details>
+  <h2>Grammar concepts</h2>
+  <p class="muted">Ticked concepts count as studied once their day comes, and appear in Grammar lessons and boss questions. Untick one to leave it out.</p>
+  <details><summary>${cs.length} concepts</summary><div class="list">${cs.map(crow).join('')}</div></details>`;
+}
+function vSetup(){
+  return `<h1>Setup</h1>
+  <h2>Levels</h2>
+  <p class="muted">One level per line: its name, then the XP needed to finish it. Add, rename, or reorder as you like.</p>
+  <textarea id="lvls" spellcheck="false" style="min-height:210px">${esc(state.levels.map(l=>l.n+' = '+l.x).join('\n'))}</textarea>
+  <label for="curlv">Your current level</label>
+  <select id="curlv">${state.levels.map((l,i)=>`<option value="${i}" ${i===state.li?'selected':''}>${esc(l.n)}</option>`).join('')}</select>
+  <p style="margin-top:12px"><button class="btn wide" data-a="savelv">Save levels</button></p>
+  <h2>Boss difficulty</h2>
+  <select id="diff">${[[.7,'Gentle'],[1,'Standard'],[1.4,'Brutal']].map(o=>`<option value="${o[0]}" ${(state.diff||1)==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
+  <h2>How the game works</h2>
+  <p class="muted">The plan is 21 days, done at your own pace. Each day has lessons to pass, weighted the way its phase asks, including one or two short texts to read. Words from a day’s texts become flashcards from that day on. Once they are done, that day’s boss opens; beat it to unlock the next day. Every passed lesson earns a card, and you can repeat any lesson for more. A boss fight spends your whole deck, win or lose, and you start each fight at full HP. Every attack, yours or the boss’s, comes with a multiple-choice French question that decides how hard it lands. Bosses get tougher with each day; your maximum HP grows by 5 with each level.</p>
+  <h2>Jump to a day</h2>
+  <p class="muted">If you are further along, or want to redo a day, go straight to it. Days before it count as done.</p>
+  <div class="two"><select id="jump" aria-label="Day">${Array.from({length:21},(_,i)=>`<option value="${i+1}" ${i+1===curDay()?'selected':''}>Day ${i+1}</option>`).join('')}</select><button class="btn alt" data-a="jump">Go to this day</button></div>
+  <h2>Your data</h2>
+  <p class="muted">${esc(syncMsg)}</p>
+  <div class="rowbtns"><button class="btn alt" data-a="export">Show backup text</button><button class="btn alt" data-a="restore">Restore from text</button></div>
+  <textarea id="bk" spellcheck="false" style="margin-top:10px" placeholder="Backup text appears here. To restore, paste a backup and tap Restore from text."></textarea>`;
+}
+const ACC=['é','è','ê','à','â','ç','ù','û','î','ï','ô','œ','’'];
+function vSession(){
+  if(sess.k==='r')return vReading();
+  const q=cur(),k=q.k,fb=sess.ph==='fb',frIn=k!=='l';
+  const pips=sess.qs.map((x,j)=>`<i class="${x.res?(x.res==='no'?'bad':'good'):j===sess.i?'cur':''}"></i>`).join('');
+  const hear=`<button class="btn" data-a="say">Play the audio</button>`;
+  const P={v:()=>`<div class="ask">Type this in French</div><div class="big">${esc(q.it.en)}</div>`,
+    g:()=>`<div class="ask">Translate into French</div><div class="big">${esc(q.en)}</div>${q.concept?`<span class="chip">${esc(q.concept)}</span>`:''}`,
+    l:()=>`<div class="ask">What does this mean in English?</div>${hear}`,
+    w:()=>`<div class="ask">Type what you hear, in French</div>${hear}`,
+    s:()=>`<div class="ask">Say this aloud</div><div class="big fr">${esc(q.it.fr)}</div>`,
+    fw:()=>`<div class="ask">Free answer: write ${q.min} words or more in French</div><div class="big fr free">${esc(q.q.fr)}</div><div class="ask" style="margin:10px 0 0">${esc(q.q.en)}</div>`,
+    fs:()=>`<div class="ask">Free answer: speak in French, ${q.min} words or more</div><div class="big fr free">${esc(q.q.fr)}</div><div class="ask" style="margin:10px 0 0">${esc(q.q.en)}</div>`}[k]();
+  const free=k==='fw'||k==='fs',selfBtns=`<div class="rowbtns"><button class="btn alt" data-a="self" data-r="no">Not yet</button><button class="btn alt" data-a="self" data-r="ok">I answered in French</button></div>`;
+  let body;
+  if(fb){
+    const head=free?(q.res==='ok'?'Good answer':'Keep working on this one'):q.res==='ok'?'Correct':q.res==='accent'?'Correct, but check the accents':'Not quite';
+    const fr=q.it?q.it.fr:q.ans,en=q.it?q.it.en:q.en;
+    let det;
+    if(free){const f=q.fb||{self:true};det=f.self?`<p>You graded this one yourself.</p>`:f.off?`<p>The corrector could not be reached, so this was judged on length alone (${words(q.val)} words).</p>`:`<p>Score ${Math.round(f.score)} of 100, ${words(q.val)} words.</p>${k==='fs'?`<p class="muted">Heard: ${esc(q.val)}</p>`:''}<p class="muted" style="margin:10px 0 2px">Corrected</p><p class="a">${esc(f.corrected||'')}</p>${(f.notes||[]).map(n=>`<p>${esc(n)}</p>`).join('')}`}
+    else det=`<p class="a">${esc(fr)}</p><p>${esc(en)}</p>${q.res!=='ok'&&q.val?`<p class="muted">You answered: ${esc(q.val)}</p>`:''}`;
+    body=`<div class="fb ${q.res==='no'?'no':''}"><b>${head}</b>${det}</div>
+    <div class="rowbtns">${canSay&&(!free||q.ans)?`<button class="btn alt" data-a="say">${free?'Hear the correction':'Hear it'}</button>`:''}<button class="btn" data-a="next" id="nx">${sess.i<sess.qs.length-1?'Next':'Finish round'}</button></div>
+    ${q.res==='no'&&!free?'<p class="center"><button class="link" data-a="override">My answer was right</button></p>':''}`;
+  }else if(k==='s'){
+    body=`<div class="rowbtns">${canSay?'<button class="btn alt" data-a="say">Hear it</button>':''}${SR&&!srOff?'<button class="btn" data-a="listen">Speak now</button>':''}</div>
+    <p class="muted" style="margin-top:16px">${SR&&!srOff?'Or say it, listen to the model, and grade yourself:':'Say it, listen to the model, then grade yourself:'}</p>
+    <div class="rowbtns"><button class="btn alt" data-a="self" data-r="no">Not yet</button><button class="btn alt" data-a="self" data-r="ok">I said it right</button></div>`;
+  }else if(k==='fw'){
+    body=`<textarea id="ans" lang="fr" spellcheck="false" autocapitalize="sentences" aria-label="Your answer"></textarea><div class="acc">${ACC.map(c=>`<button data-a="acc" data-c="${c}">${c}</button>`).join('')}</div><p class="muted"><span id="wc">0</span> of ${q.min} words</p><button class="btn wide" data-a="check" id="chk">Check my writing</button>`;
+  }else if(k==='fs'){
+    const hearQ=canSay?'<button class="btn alt" data-a="sayq">Hear the question</button>':'';
+    body=SR&&!srOff&&AI?`<div class="rowbtns">${hearQ}<button class="btn" data-a="dictate" id="dic">Start speaking</button></div>
+    <textarea id="ans" lang="fr" spellcheck="false" style="margin-top:12px" aria-label="What you said" placeholder="What you say appears here. Fix anything the microphone misheard before checking."></textarea>
+    <p class="muted"><span id="wc">0</span> of ${q.min} words</p><button class="btn wide" data-a="check" id="chk">Check my answer</button>
+    <p class="muted" style="margin-top:16px">Or answer aloud without the microphone and grade yourself:</p>${selfBtns}`
+    :`<div class="rowbtns">${hearQ}</div><p class="muted" style="margin-top:16px">Answer aloud for about a minute, then grade yourself:</p>${selfBtns}`;
+  }else{
+    body=`<input type="text" id="ans" lang="${frIn?'fr':'en'}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Your answer" placeholder="${frIn?'En français':'In English'}">
+    ${frIn?`<div class="acc">${ACC.map(c=>`<button data-a="acc" data-c="${c}">${c}</button>`).join('')}</div>`:'<div style="height:12px"></div>'}
+    <button class="btn wide" data-a="check" id="chk">Check answer</button>`;
+  }
+  return `<div class="sbar"><button class="x" data-a="quit" aria-label="Leave round">✕</button><div class="pips">${pips}</div></div><div class="prompt">${P}</div>${body}`;
+}
+function vReward(){
+  const r=reward,head=`<h1>${r.right} of ${r.n} correct</h1><p class="muted">+${r.xp} XP. ${r.passed?esc(lessonLine(r.k)):'Get at least half right for the lesson to count.'}</p>`;
+  return `${head}${r.opts.length?`<h2>Pick one card for your deck</h2><div class="cards">${r.opts.map(id=>cardHtml(id,`data-a="take" data-id="${id}"`)).join('')}</div>${r.k==='w'&&state.day.deck.length?`<h2>Or cross out a card you hold</h2><p class="muted">Writing is editing: instead of taking a card, cross one out of your deck so your best cards come up more often.</p><div class="cards">${state.day.deck.map((id,i)=>cardHtml(id,`data-a="cut" data-i="${i}"`)).join('')}</div>`:''}<p class="center" style="margin-top:14px"><button class="link" data-a="home">Skip</button></p>`
+    :`<p>Get at least half right to earn a card. Another round?</p><div class="rowbtns"><button class="btn alt" data-a="home">Back to lessons</button><button class="btn" data-a="go" data-k="${r.k}">Try again</button></div>`}`;
+}
+function vReading(){
+  const t=sess.text,ph=sess.ph;
+  const pips=sess.qs.map((x,j)=>`<i class="${x.res?(x.res==='no'?'bad':'good'):j===sess.i&&ph!=='read'?'cur':''}"></i>`).join('');
+  const head=`<div class="sbar"><button class="x" data-a="quit" aria-label="Leave the lesson">✕</button><div class="pips">${pips}</div></div>`;
+  const bar='';
+  if(ph==='read')return `${head}<article class="rtext"><p class="muted">Day ${t.day} reading</p><h1 class="fr">${esc(t.title)}</h1>
+    ${canSay?'<p><button class="btn alt" data-a="saytext">Listen to the text</button></p>':''}<div class="rbody fr">${textHtml(t)}</div></article>
+    <p class="muted">Tap a highlighted word to see what it means. These words become flashcards from today.</p>
+    <button class="btn wide" data-a="rstart">Answer ${t.qs.length} questions</button>${bar}`;
+  const q=cur(),done=ph==='fb';
+  return `${head}<div class="prompt"><div class="ask">${esc(t.title)}: question ${sess.i+1} of ${sess.qs.length}</div><div class="big fr rq">${esc(q.q)}</div></div>
+  <div class="qo">${q.opts.map((o,i)=>`<button class="fr ${done&&i===q.c?'right':''} ${done&&i===q.pick&&i!==q.c?'wrong':''}" data-a="ropt" data-i="${i}" ${done?'disabled':''}>${esc(o)}</button>`).join('')}</div>
+  ${done?`<p class="qr">${q.res==='ok'?'Correct.':`The answer was <b class="fr">${esc(q.opts[q.c])}</b>.`}</p><button class="btn wide" data-a="next" id="nx">${sess.i<sess.qs.length-1?'Next':'Finish the lesson'}</button>`:''}
+  <details class="again"><summary>Show the text again</summary><div class="rbody fr">${textHtml(t)}</div></details>${bar}`;
+}
+function quizHtml(q){
+  const done=q.ans!=null,ok=q.ans===q.c;
+  const head=q.kind==='atk'?'Your attack: answer right to hit at full strength':'The boss attacks: answer right to dodge half the damage';
+  return `<div class="quiz ${q.kind}"><p class="qk">${head}</p><p class="qa">${esc(q.ask)}</p><p class="qb ${q.bigFr?'fr':''}">${esc(q.big)}</p>${q.chip?`<span class="tag">${esc(q.chip)}</span>`:''}
+  <div class="qo">${q.opts.map((o,i)=>`<button class="${q.fr?'fr':''} ${done&&i===q.c?'right':''} ${done&&i===q.ans&&!ok?'wrong':''}" data-a="qans" data-i="${i}" ${done?'disabled':''}>${esc(o)}</button>`).join('')}</div>
+  ${done&&!ok?`<p class="qr">The answer was <b class="fr">${esc(q.opts[q.c])}</b>. ${q.kind==='atk'?'Your card hits at half strength.':'You take the full hit.'}</p><button class="btn wide" data-a="qgo" id="qgo">Continue</button>`:done?`<p class="qr">Correct.</p>`:''}</div>`;
+}
+function vBattle(){
+  const b=B.boss,p=B.p,mx=maxHp(),bi=B.bi;
+  const tags=(o,blkv)=>[blkv?`Block ${blkv}`:'',o.str?`Strength ${o.str}`:'',o.weak?`Weak ${o.weak}`:'',o.vuln?`Vulnerable ${o.vuln}`:''].filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('');
+  const fx=B.fx;B.fx=false;
+  const nd=B.day+1,over=B.over?`<div class="over"><h1>${B.over==='won'?`Day ${B.day} complete`:'Knocked out'}</h1><p>${B.over==='won'?(B.day>=21?`+${B.gain} XP. That was the final test: all 21 days are done.`:`+${B.gain} XP. Day ${nd} is open: ${esc(dayTopics(nd).join(', '))}. You start it with an empty deck.`):'Your cards are spent. Repeat any lesson to earn new ones, then try again.'}</p><div class="rowbtns"><button class="btn alt" data-a="tab" data-v="plan">See the map</button><button class="btn" data-a="home">${B.over==='won'?(B.day>=21?'Back to lessons':`Start day ${nd}`):'Back to lessons'}</button></div></div>`:'';
+  return `<div class="arena ${fx?'hit':''}">${tarot(bi,'Day '+B.day)}<div>
+    <div class="row" style="display:flex;justify-content:space-between"><b>${b.hp} HP</b><small>of ${b.max}</small></div><div class="bar hp"><i style="width:${b.hp/b.max*100}%"></i></div>
+    <div class="tags">${tags(b,b.blk)}</div>
+    ${B.over?'':`<div class="intent">Next: ${intentText()}</div>`}</div></div>
+  <p class="msg">${esc(B.msg)}</p>${over}
+  <div class="spacer"></div>
+  <div class="me">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><b>You: ${Math.max(0,state.hp)} HP</b><span class="pipsE" aria-label="${p.en} energy">${'●'.repeat(p.en)}<span style="opacity:.25">${'●'.repeat(Math.max(0,B.emax-p.en))}</span></span></div>
+    <div class="bar hp" style="margin-top:6px"><i style="width:${Math.max(0,state.hp/mx*100)}%"></i></div>
+    <div class="tags">${tags(p,p.blk)}${B.dbl?'<span class="tag">Next card twice</span>':''}<span class="tag">Draw pile ${B.draw.length}</span><span class="tag">Discard ${B.disc.length}</span></div>
+  </div>
+  ${B.over?'':B.q?quizHtml(B.q):`<div class="hand">${B.hand.length?B.hand.map((id,i)=>cardHtml(id,`data-a="play" data-i="${i}"`,CARDS[id].c>p.en?'dim':'')).join(''):'<p class="muted">No cards in hand.</p>'}</div>
+  <button class="btn wide" data-a="endturn">End turn</button>`}`;
+}
+
+/* ===== 90-app.js ===== */
+const TABS=[['home','Lessons','♠'],['plan','Map','★'],['deck','Deck','♥'],['words','Words','♦'],['setup','Setup','♣']];
+function render(){
+  const app=$('#app'),full=['session','battle','reward','loading'].includes(view);
+  app.className=full?'full':'';
+  app.innerHTML=view==='home'?vHome():view==='plan'?vMap():view==='deck'?vDeck():view==='words'?vWords():view==='setup'?vSetup():view==='session'?vSession():view==='reward'?vReward():view==='battle'?vBattle():`<div class="spacer"></div><p class="center"><b>Writing new sentences for you…</b></p><p class="center muted">Built from your studied concepts and the words you know.</p><div class="spacer"></div>`;
+  const nav=$('#nav');nav.className=full?'hide':'';
+  nav.innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${view===t[0]?'on':''}"><i>${t[2]}</i>${t[1]}</button>`).join('');
+  if(view==='session'&&sess.ph==='ask'){const q=cur(),a=$('#ans');if(a&&q.k!=='fs')a.focus();if(q.k==='l'||q.k==='w')say(q.it.fr)}
+  if(view==='session'&&sess.ph==='fb'){const n=$('#nx');if(n)n.focus()}
+  if(view==='battle'&&B&&B.q&&B.q.ans!=null){const g=$('#qgo');if(g)g.focus()}
+  if(view==='plan'&&mapScroll){mapScroll=false;const c=document.querySelector('.nd.cur');if(c)c.scrollIntoView({block:'center'})}
+}
+
+/* ---------- actions ---------- */
+const A={
+  tab:d=>{view=d.v;B=null;mapSheet=null;mapScroll=d.v==='plan';importMsg=null;delArm=null;window.scrollTo(0,0);render()},
+  node:d=>{mapSheet=+d.d;render()},
+  sheetclose:()=>{mapSheet=null;render()},
+  jump:()=>{const n=+$('#jump').value;if(!(n>=1&&n<=21))return;state.stage=n;state.day.done={};save();toast('Now on day '+n+'.');view='home';render()},
+  go:d=>startSession(d.k),
+  home:()=>{view='home';reward=null;B=null;render()},
+  cut:d=>{if(!reward)return;const id=state.day.deck.splice(+d.i,1)[0];reward=null;view='home';save();render();if(id)toast(CARDS[id].n+' crossed out of your deck.')},
+  fight:()=>{if(state.stage<=21&&state.day.deck.length>=3&&quests().every(q=>q.ok))startBattle()},
+  play:d=>play(+d.i),endturn:endTurn,
+  check,next,override,listen,dictate,
+  qans:d=>qAnswer(+d.i),qgo:qResolve,
+  sayq:()=>say(cur().q.fr),
+  rstart:()=>{if(!sess||sess.k!=='r')return;sess.ph='ask';glossSel=null;window.scrollTo(0,0);render()},
+  ropt:d=>readAnswer(+d.i),
+  gloss:d=>{glossSel=glossSel===+d.i?null:+d.i;render()},
+  saytext:()=>say(sess.text.paras.join(' ')),
+  sayword:()=>{if(sess&&sess.text&&glossSel!=null)say(sess.text.gloss[glossSel].f)},
+  say:()=>{const q=cur();say(q.it?q.it.fr:q.ans)},
+  self:d=>{stopRec();settle(d.r,'')},
+  acc:d=>{const a=$('#ans');if(!a)return;const s=a.selectionStart??a.value.length,e=a.selectionEnd??s;a.value=a.value.slice(0,s)+d.c+a.value.slice(e);a.focus();a.setSelectionRange(s+1,s+1)},
+  quit:()=>{stopRec();try{speechSynthesis.cancel()}catch(e){}sess=null;view='home';render()},
+  take:d=>{state.day.deck.push(d.id);toast(CARDS[d.id].n+' joined your deck.');reward=null;view='home';save();render()},
+  import:()=>{const r=parseBulk($('#bulk').value,$('#blv').value,$('#blist').value.trim()||'My words'),n=addBulk(r);
+    importMsg={ok:(n.ni||n.nc)?`Added ${n.ni} word${n.ni===1?'':'s'} or phrase${n.ni===1?'':'s'} and ${n.nc} grammar concept${n.nc===1?'':'s'}.`:(r.errors.length?'Nothing was added.':n.dup?'Nothing new to add: those are already in the course or your lists.':'Nothing new to add. Paste one entry per line, like “le chat = the cat”.'),errors:r.errors.slice(0,8)};
+    if((n.ni||n.nc)&&n.dup)importMsg.ok+=` ${n.dup} already in the course or your lists were skipped.`;
+    const keep=r.errors.length?$('#bulk').value:'';if(n.ni||n.nc)save();render();$('#bulk').value=keep},
+  dellist:d=>{if(delArm!==d.n){delArm=d.n;return render()}state.mine.items=state.mine.items.filter(i=>i.list!==d.n);state.mine.concepts=state.mine.concepts.filter(c=>c.list!==d.n);delArm=null;save();render()},
+  savelv:()=>{const cur=state.levels[+$('#curlv').value]?.n,ls=[];
+    $('#lvls').value.split(/\n/).forEach(l=>{const m=l.trim().match(/^(.+?)\s*=\s*(\d+)$/);if(m)ls.push({n:m[1].trim(),x:Math.max(10,+m[2])});else if(l.trim())ls.push({n:l.trim(),x:400})});
+    if(!ls.length)return toast('Keep at least one level.');
+    state.levels=ls;const i=ls.findIndex(l=>l.n===cur);state.li=i>=0?i:Math.min(state.li,ls.length-1);state.hp=Math.min(state.hp,maxHp());save();toast('Levels saved.');render()},
+  export:()=>{$('#bk').value=JSON.stringify(state);$('#bk').select()},
+  restore:()=>{try{const s=JSON.parse($('#bk').value);if(!s||s.v!==1||!(Array.isArray(s.items)||s.srs))throw 0;adopt(s);save();toast('Backup restored.');view='home';render()}catch(e){toast('That is not a backup from this app.')}}
+};
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled)return;const f=A[el.dataset.a];if(f)f(el.dataset)});
+document.addEventListener('change',e=>{const t=e.target,ds=t.dataset||{};
+  if(ds.c&&t.type==='checkbox'){const c=allConcepts().find(x=>x.id===ds.c);if(c){c.on=t.checked;save()}}
+  else if(ds.p){if(t.checked)state.plan.done[ds.p]=true;else delete state.plan.done[ds.p];save()}
+  else if(ds.s){const [d,k]=ds.s.split(':');(state.plan.scores[d]=state.plan.scores[d]||{})[k]=t.value.trim();save()}
+  else if(t.id==='pstart'&&t.value){state.plan.start=t.value;save();render()}
+  else if(t.id==='diff'){state.diff=+t.value;save();toast('Boss difficulty saved.')}
+});
+document.addEventListener('input',e=>{if(e.target.id==='ans'){const c=$('#wc');if(c)c.textContent=words(e.target.value)}});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||view!=='session'||e.target.tagName==='TEXTAREA')return;if(sess.ph==='ask'&&e.target.id==='ans'){e.preventDefault();check()}else if(sess.ph==='fb'&&e.target.tagName!=='BUTTON'){e.preventDefault();next()}});
+try{speechSynthesis.getVoices()}catch(e){}
+
+load();render();initCloud();initAI();
+
+</script>
+</body>
+</html>
